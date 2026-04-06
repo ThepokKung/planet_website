@@ -1,7 +1,22 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // ย้ายมาไว้ด้านนอกตามที่ Log แนะนำ
+  allowedDevOrigins: ["192.168.1.155", "localhost", "0.0.0.0"],
+  
+  devIndicators: {
+    appIsrStatus: false,
+  },
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
+  experimental: {
+    serverActions: {
+      allowedOrigins: ["192.168.1.155:3000", "localhost:3000", "0.0.0.0:3000"]
+    }
+  } as any
 };
 
 export default nextConfig;
