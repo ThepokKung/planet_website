@@ -10,7 +10,7 @@ export default async function UserManagementPage() {
 
   // STRICT RULE: Non-admin can't see/access this page
   if (!session || session.role !== "ADMIN") {
-    redirect("/fleet");
+    redirect("/dashboard");
   }
 
   const users = await prisma.user.findMany({
@@ -42,8 +42,7 @@ export default async function UserManagementPage() {
                   type="email" 
                   required
                   className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#0E6633]/20 outline-none transition-all"
-                  placeholder="operator@agrobot.local"
-                />
+                  placeholder="operator@vertical-forest.local"                />
               </div>
               <div>
                 <label className="block text-xs font-bold text-[#757575] uppercase mb-1">Password</label>

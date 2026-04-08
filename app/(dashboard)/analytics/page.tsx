@@ -93,7 +93,7 @@ export default async function AnalyticsPage({ searchParams }: Props) {
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e]">AgroBot Analytics</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e]">Dashboard Analytics</h2>
           <p className="text-[#757575] mt-1">Real-time hydration intelligence and resource metrics</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -110,46 +110,6 @@ export default async function AnalyticsPage({ searchParams }: Props) {
         </div>
       </div>
 
-      {/* Performance Highlights Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-          <h4 className="font-bold text-[#1e1e1e] mb-4 flex items-center gap-2 uppercase text-[10px] tracking-widest text-[#757575]">
-            <BarChart3 className="w-4 h-4" /> Status Summary
-          </h4>
-          <div className="p-4 bg-green-50 rounded-2xl border border-green-100">
-            <div className="text-[10px] font-black text-[#22a042] uppercase tracking-tighter mb-1">Efficiency</div>
-            <div className="text-lg font-bold text-[#0E6633]">
-              {summary.totalEvents > 0 ? "Optimal Hydration" : "No Activity"}
-            </div>
-            <p className="text-xs text-[#0E6633]/70 font-medium mt-1">
-              System processed {summary.totalEvents} watering events.
-            </p>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-          <h4 className="font-bold text-[#1e1e1e] mb-4 flex items-center gap-2 uppercase text-[10px] tracking-widest text-[#757575]">
-            <BarChart3 className="w-4 h-4" /> Water Economy
-          </h4>
-          <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
-            <div className="text-[10px] font-black text-blue-600 uppercase tracking-tighter mb-1">Resource Usage</div>
-            <div className="text-lg font-bold text-blue-800">
-              {summary.totalWaterUsed.toLocaleString()} ml
-            </div>
-            <p className="text-xs text-blue-800/60 font-medium mt-1">
-              Total volume delivered to plant sectors.
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-          <h4 className="font-bold text-[#1e1e1e] mb-4 uppercase text-[10px] tracking-widest text-[#757575]">System Health</h4>
-          <div className="flex flex-col items-center justify-center py-6 text-[#757575] bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-            <CheckCircle2 className="w-6 h-6 text-[#22a042] mb-2 opacity-50" />
-            <p className="text-[10px] font-bold text-center px-4 uppercase tracking-tighter">Hydration parameters stable.</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

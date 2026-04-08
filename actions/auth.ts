@@ -59,14 +59,14 @@ export async function loginAction(formData: FormData) {
       path: '/'
     });
     
-    console.log(`[LOGIN] Session set, redirecting to /fleet...`);
+    console.log(`[LOGIN] Session set, redirecting to /dashboard...`);
     
   } catch (error) {
     console.error("[LOGIN] Server error:", error);
     return { error: "An unexpected error occurred." };
   }
 
-  redirect("/fleet");
+  redirect("/dashboard");
 }
 
 export async function logoutAction() {

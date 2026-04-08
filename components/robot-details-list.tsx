@@ -13,8 +13,10 @@ import {
   X,
   Edit2,
   Check,
-  Loader2
+  Loader2,
+  ExternalLink
 } from "lucide-react";
+import Link from "next/link";
 import { updatePlantNameAction } from "@/actions/robots";
 
 interface Plant {
@@ -103,6 +105,14 @@ export function RobotDetailsList({ robots, role }: { robots: Robot[], role?: str
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-[#0E6633] uppercase">
                   {robot.status || 'Idle'}
                 </span>
+                <Link 
+                  href={`/details/${robot.id}`}
+                  className="p-2 hover:bg-[#0E6633] hover:text-white rounded-lg transition-all text-[#0E6633] border border-[#0E6633]/10"
+                  onClick={(e) => e.stopPropagation()} // ป้องกันไม่ให้ไป trigger การยุบ/ขยาย card
+                  title="View Detailed Logs & Analytics"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Link>
               </div>
             </button>
             

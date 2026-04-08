@@ -20,7 +20,7 @@ export default async function DetailsPage() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div>
         <h2 className="text-3xl font-bold text-[#1e1e1e]">Robot Details</h2>
-        <p className="text-[#757575] mt-1">Hierarchical view of your agricultural fleet</p>
+        <p className="text-[#757575] mt-1">Hierarchical view of your robot dashboard</p>
       </div>
 
       <RobotDetailsList robots={robots} role={userRole} />

@@ -27,7 +27,7 @@ export function Sidebar({ role }: { role?: string }) {
   const isAdmin = role === 'ADMIN';
 
   const navItems = [
-    { name: "Dashboard", href: "/fleet", icon: LayoutDashboard },
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Robot Details", href: "/details", icon: TreePine },
     { name: "Analytics", href: "/analytics", icon: BarChart3 },
     { name: "System Logs", href: "/system-logs", icon: History },
@@ -35,7 +35,6 @@ export function Sidebar({ role }: { role?: string }) {
 
   const adminItems = [
     { name: "Setup Robot", href: "/setup", icon: Zap },
-    { name: "Settings", href: "/settings", icon: Settings },
     { name: "User Management", href: "/users", icon: Users },
   ];
 
@@ -46,7 +45,7 @@ export function Sidebar({ role }: { role?: string }) {
           <Bot className="w-6 h-6 text-white" />
         </div>
         <span className="font-bold text-sm text-white leading-tight">
-          AgroBot<br />Command Center
+          Vertical Forest<br />Dashboard
         </span>
       </div>
       

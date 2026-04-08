@@ -168,28 +168,6 @@ export function AnalyticsCharts({ data }: { data: AnalyticsData }) {
         </div>
       </div>
 
-      {/* Summary Section */}
-      <div className="bg-[#0E6633] rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-[#0E6633]/20">
-        <div className="space-y-2">
-          <h4 className="text-xl font-bold flex items-center gap-2">
-            <Calendar className="w-6 h-6" /> System Summary Report
-          </h4>
-          <p className="text-white/70 text-sm max-w-md">
-            Based on the selected period of hardware logs, your plants are receiving optimal hydration. 
-            All {summary.totalEvents} watering events were completed successfully.
-          </p>
-        </div>
-        <div className="flex gap-4">
-          <div className="bg-white/10 px-6 py-4 rounded-2xl backdrop-blur-sm border border-white/10">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-white/50">Avg Moisture</div>
-            <div className="text-2xl font-black">{summary.avgMoisture.toFixed(1)}%</div>
-          </div>
-          <div className="bg-white/10 px-6 py-4 rounded-2xl backdrop-blur-sm border border-white/10">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-white/50">Total Events</div>
-            <div className="text-2xl font-black">{summary.totalEvents}</div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

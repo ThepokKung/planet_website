@@ -16,7 +16,7 @@ async function main() {
   const adapter = new PrismaPg(pool);
   const prisma = new PrismaClient({ adapter });
 
-  console.log('--- 🛡️  AgroBot Seed: Initializing Wipe ---');
+  console.log('--- 🛡️  Vertical Forest Seed: Initializing Wipe ---');
   
   // 1. Clean DB
   await prisma.robotLog.deleteMany();
@@ -27,7 +27,7 @@ async function main() {
   await prisma.location.deleteMany();
   await prisma.user.deleteMany();
 
-  console.log('--- 🏗️  AgroBot Seed: Creating Base Infrastructure ---');
+  console.log('--- 🏗️  Vertical Forest Seed: Creating Base Infrastructure ---');
 
   // 2. Setup Base Data
   const hashedPassword = await bcrypt.hash('admin123', 10);
@@ -52,7 +52,7 @@ async function main() {
   const robot = await prisma.robot.create({
     data: {
       id: 'BOT-001',
-      name: 'AgroBot Alpha',
+      name: 'Vertical Forest Alpha',
       locationId: location.id,
       state: 'SLEEP',
       status: 'Ready',
@@ -112,7 +112,7 @@ async function main() {
     },
   });
 
-  console.log('--- 🤖 AgroBot Seed: Starting 7-Day Simulation (8-Step Workflow) ---');
+  console.log('--- 🤖 Vertical Forest Seed: Starting 7-Day Simulation (8-Step Workflow) ---');
 
   const now = new Date();
   const pots = [
@@ -280,7 +280,7 @@ async function main() {
     }
   }
 
-  console.log('--- ✅ AgroBot Seed: Simulation Complete ---');
+  console.log('--- ✅ Vertical Forest Seed: Simulation Complete ---');
   await prisma.$disconnect();
 }
 

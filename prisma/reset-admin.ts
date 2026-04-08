@@ -19,7 +19,7 @@ async function resetAdminPassword() {
   const username = 'admin'; // Based on seed.ts
   const newPassword = 'admin123456';
 
-  console.log(`--- 🛡️  AgroBot: Password Reset Utility ---`);
+  console.log(`--- 🛡️  Vertical Forest: Password Reset Utility ---`);
   
   try {
     const user = await prisma.user.findUnique({

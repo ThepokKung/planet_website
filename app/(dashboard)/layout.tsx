@@ -21,7 +21,7 @@ export default async function DashboardLayout({
         <header className="h-16 bg-white border-b border-gray-200 px-8 flex items-center justify-between sticky top-0 z-10 shadow-sm">
           <div>
             <h1 className="text-lg font-bold text-[#1e1e1e]">
-              AgroBot Center
+              Vertical Forest Dashboard
             </h1>
           </div>
           <div className="flex items-center gap-4">

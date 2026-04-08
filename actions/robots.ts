@@ -96,7 +96,7 @@ export async function saveRobotConfigAction(config: any) {
     }
 
     revalidatePath("/details");
-    revalidatePath("/fleet");
+    revalidatePath("/dashboard");
     revalidatePath("/analytics");
     return { success: true };
   } catch (error) {
@@ -122,5 +122,31 @@ export async function updatePlantNameAction(plantId: string, newName: string) {
   } catch (error) {
     console.error("Update plant error:", error);
     return { error: "Failed to update plant name." };
+  }
+}
+
+export async function getRobotLogsAction(robotId: string, page: number = 1, pageSize: number = 50) {
+  try {
+    const skip = (page - 1) * pageSize;
+    const [logs, total] = await Promise.all([
+      prisma.robotLog.findMany({
+        where: { robotId },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      prisma.robotLog.count({
+        where: { robotId }
+      })
+    ]);
+
+    return {
+      logs,
+      total,
+      totalPages: Math.ceil(total / pageSize)
+    };
+  } catch (error) {
+    console.error("Failed to fetch robot logs:", error);
+    return { logs: [], total: 0, totalPages: 0 };
   }
 }

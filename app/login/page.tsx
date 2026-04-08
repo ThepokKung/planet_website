@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { loginAction } from "@/actions/auth";
-import { Leaf, Lock, User, Loader2 } from "lucide-react";
+import { Leaf, Lock, User, Loader2, LayoutDashboard } from "lucide-react";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +40,7 @@ export default function LoginPage() {
             </div>
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            AgroBot Center
+            Vertical Forest Dashboard
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Sign in to manage your robot fleet
@@ -125,14 +126,24 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <button
-            disabled={loading}
-            type="submit"
-            onClick={() => console.log("Physical click on sign-in button detected")}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#0E6633] hover:bg-[#0c592b] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0E6633] disabled:opacity-50 transition-all"
-          >
-            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign in"}
-          </button>
+          <div className="space-y-3">
+            <button
+              disabled={loading}
+              type="submit"
+              onClick={() => console.log("Physical click on sign-in button detected")}
+              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-[#0E6633] hover:bg-[#0c592b] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0E6633] disabled:opacity-50 transition-all active:scale-[0.98]"
+            >
+              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign in"}
+            </button>
+
+            <Link
+              href="/dashboard"
+              className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-200 rounded-md text-sm font-bold text-gray-600 bg-white hover:bg-gray-50 transition-all active:scale-[0.98]"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Return to Dashboard
+            </Link>
+          </div>
         </form>
 
 
