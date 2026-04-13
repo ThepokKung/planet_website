@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { 
-  Cpu, 
-  List, 
-  Zap, 
-  Plus, 
-  Trash2, 
-  Save, 
+import {
+  Cpu,
+  List,
+  Zap,
+  Plus,
+  Trash2,
+  Save,
   CheckCircle,
   AlertCircle,
   Search,
@@ -46,7 +46,7 @@ export default function CommissioningPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchingDb, setIsFetchingDb] = useState(false);
   const [isFetchingMcu, setIsFetchingMcu] = useState(false);
-  
+
   // Form States
   const [robotId, setRobotId] = useState("BOT-001");
   const [robotName, setRobotName] = useState("Vertical Forest Alpha");
@@ -54,12 +54,13 @@ export default function CommissioningPage() {
   const [pots, setPots] = useState<PotEntry[]>([
     { index: 0, potName: "Pot 0", plants: [{ name: "Basil" }, { name: "Mint" }] }
   ]);
-  
+
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info', msg: string } | null>(null);
-  
+
   // Serial Port States (Persistent Refs)
   const portRef = useRef<any>(null);
   const writerRef = useRef<any>(null);
+  const readerRef = useRef<any>(null);
   const [serialStatus, setSerialStatus] = useState<string>("Waiting for connection...");
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -97,7 +98,9 @@ export default function CommissioningPage() {
     checkAuth();
 
     return () => {
-      if (portRef.current) portRef.current.close().catch(() => {});
+      if (portRef.current) {
+        disconnectUsb();
+      }
     };
   }, [router]);
 
@@ -108,7 +111,7 @@ export default function CommissioningPage() {
 
     setIsConnecting(true);
     setSerialStatus("Requesting port access...");
-    
+
     try {
       const port = await (navigator as any).serial.requestPort();
       await port.open({ baudRate: 115200 });
@@ -121,6 +124,7 @@ export default function CommissioningPage() {
       const decoder = new TextDecoderStream();
       port.readable.pipeTo(decoder.writable);
       const reader = decoder.readable.getReader();
+      readerRef.current = reader;
 
       setIsConnected(true);
       setSerialStatus("USB Connected! Fetching board info...");
@@ -128,7 +132,7 @@ export default function CommissioningPage() {
 
       await writerRef.current.write("GET_INFO\n");
       readLoop(reader);
-      
+
     } catch (error: any) {
       if (error.name === 'NotFoundError') {
         setSerialStatus("Connection cancelled by user.");
@@ -141,6 +145,38 @@ export default function CommissioningPage() {
       setIsConnected(false);
     } finally {
       setIsConnecting(false);
+    }
+  };
+
+  const disconnectUsb = async () => {
+    try {
+      if (readerRef.current) {
+        await readerRef.current.cancel();
+        readerRef.current.releaseLock();
+        readerRef.current = null;
+      }
+
+      if (writerRef.current) {
+        await writerRef.current.close();
+        writerRef.current.releaseLock();
+        writerRef.current = null;
+      }
+
+      if (portRef.current) {
+        await portRef.current.close();
+        portRef.current = null;
+      }
+
+      setIsConnected(false);
+      setSerialStatus("USB Disconnected.");
+      setRobotIp("Not Connected");
+      setStatus({ type: 'info', msg: 'USB Disconnected' });
+    } catch (error: any) {
+      console.error("Disconnect Error:", error);
+      setSerialStatus(`Disconnect Failed: ${error.message}`);
+      // Force clean up states anyway
+      setIsConnected(false);
+      setRobotIp("Not Connected");
     }
   };
 
@@ -167,10 +203,10 @@ export default function CommissioningPage() {
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-        
+
         buffer += value;
         let lines = buffer.split('\n');
-        buffer = lines.pop() || ""; 
+        buffer = lines.pop() || "";
 
         for (let line of lines) {
           processESP32Message(line.trim());
@@ -188,7 +224,7 @@ export default function CommissioningPage() {
 
     try {
       const data = JSON.parse(line);
-      
+
       if (data.type === "info") {
         setRobotIp(data.ip || "Unknown IP");
         if (data.config) {
@@ -199,11 +235,11 @@ export default function CommissioningPage() {
         }
         setSerialStatus("Board info synced successfully.");
         setStatus({ type: 'success', msg: 'MCU Data Loaded to Form' });
-      } 
+      }
       else if (data.type === "success") {
         setSerialStatus(`ESP32: ${data.msg}`);
         setStatus({ type: 'success', msg: data.msg });
-      } 
+      }
       else if (data.type === "error") {
         setSerialStatus(`ESP32 Error: ${data.msg}`);
         setStatus({ type: 'error', msg: data.msg });
@@ -221,7 +257,7 @@ export default function CommissioningPage() {
 
     setIsUploading(true);
     setSerialStatus("Uploading new configuration...");
-    
+
     try {
       const payload = JSON.stringify(robotConfig) + "\n";
       await writerRef.current.write(payload);
@@ -296,10 +332,9 @@ export default function CommissioningPage() {
       </div>
 
       {status && (
-        <div className={`px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 border animate-in slide-in-from-top-2 shadow-sm ${
-          status.type === 'success' ? 'bg-green-50 border-green-200 text-[#0E6633]' : 
-          status.type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-blue-50 border-blue-200 text-blue-700'
-        }`}>
+        <div className={`px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 border animate-in slide-in-from-top-2 shadow-sm ${status.type === 'success' ? 'bg-green-50 border-green-200 text-[#0E6633]' :
+            status.type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-blue-50 border-blue-200 text-blue-700'
+          }`}>
           {status.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           {status.msg}
         </div>
@@ -308,13 +343,13 @@ export default function CommissioningPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Actions & Profile (4/12) */}
         <div className="lg:col-span-4 space-y-6">
-          
+
           {/* Action Group 1: Fetch Data */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4 shadow-sm">
             <h3 className="font-bold flex items-center gap-2 text-gray-500 uppercase text-[10px] tracking-widest leading-none mb-2">Step 1: Get Existing Data</h3>
             <div className="grid grid-cols-1 gap-3">
-              <button 
-                onClick={fetchExistingFromDb} 
+              <button
+                onClick={fetchExistingFromDb}
                 disabled={isFetchingDb}
                 className="w-full py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-50 flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 disabled:opacity-50"
               >
@@ -323,18 +358,26 @@ export default function CommissioningPage() {
               </button>
 
               <div className="flex gap-2">
-                <button 
-                  onClick={connectUsb} 
-                  disabled={isConnecting || isConnected}
-                  className={`flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 disabled:opacity-70 ${
-                    isConnected ? 'bg-green-50 text-[#0E6633] border border-[#0E6633]/20' : 'bg-white border border-gray-200 text-gray-700'
-                  }`}
-                >
-                  {isConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Usb className="w-4 h-4" />}
-                  {isConnected ? 'USB Linked' : 'Connect USB'}
-                </button>
-                <button 
-                  onClick={fetchFromMcu} 
+                {isConnected ? (
+                  <button
+                    onClick={disconnectUsb}
+                    className="flex-1 py-3 bg-red-50 border border-red-200 text-red-600 rounded-xl font-bold text-sm hover:bg-red-100 flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
+                  >
+                    <X className="w-4 h-4" />
+                    Disconnect USB
+                  </button>
+                ) : (
+                  <button
+                    onClick={connectUsb}
+                    disabled={isConnecting}
+                    className="flex-1 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-50 flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 disabled:opacity-70"
+                  >
+                    {isConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Usb className="w-4 h-4" />}
+                    Connect USB
+                  </button>
+                )}
+                <button
+                  onClick={fetchFromMcu}
                   disabled={!isConnected || isFetchingMcu}
                   className="px-4 py-3 bg-white border border-gray-200 text-[#0E6633] rounded-xl font-bold text-sm hover:bg-gray-50 shadow-sm transition-all active:scale-95 disabled:opacity-30"
                   title="Pull Data from MCU"
@@ -373,9 +416,9 @@ export default function CommissioningPage() {
               <button onClick={saveToDb} className="w-full py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-50 flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95">
                 <Database className="w-4 h-4 text-[#0E6633]" /> Save to Web Database
               </button>
-              
-              <button 
-                onClick={uploadViaUsb} 
+
+              <button
+                onClick={uploadViaUsb}
                 disabled={isUploading || !isConnected}
                 className="w-full py-3 bg-[#0E6633] text-white rounded-xl font-bold text-sm hover:bg-[#0c592b] flex items-center justify-center gap-2 shadow-lg shadow-[#0E6633]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
               >
@@ -409,7 +452,7 @@ export default function CommissioningPage() {
                 <button onClick={() => removePot(pIdx)} className="absolute top-4 right-4 text-red-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-4 h-4" /></button>
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center font-black text-xs text-[#0E6633] font-mono border border-gray-100">{pot.index}</div>
-                  <input type="text" value={pot.potName} onChange={(e) => {const n=[...pots]; n[pIdx].potName=e.target.value; setPots(n);}} className="flex-1 font-bold text-sm bg-transparent border-b border-transparent focus:border-[#0E6633] outline-none" />
+                  <input type="text" value={pot.potName} onChange={(e) => { const n = [...pots]; n[pIdx].potName = e.target.value; setPots(n); }} className="flex-1 font-bold text-sm bg-transparent border-b border-transparent focus:border-[#0E6633] outline-none" />
                 </div>
                 <div className="space-y-2 pl-4 border-l-2 border-dashed border-gray-100">
                   {pot.plants.map((plant, plIdx) => (
@@ -417,8 +460,8 @@ export default function CommissioningPage() {
                       <Leaf className="w-3.5 h-3.5 text-[#22a042]" />
                       <input type="text" value={plant.name} onChange={(e) => updatePlantName(pIdx, plIdx, e.target.value)} className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1 text-xs focus:ring-1 focus:ring-[#0E6633] outline-none" />
                       {pot.plants.length > 1 && (
-                        <button 
-                          onClick={() => removePlantFromPot(pIdx, plIdx)} 
+                        <button
+                          onClick={() => removePlantFromPot(pIdx, plIdx)}
                           className="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover/plant:opacity-100"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -434,7 +477,7 @@ export default function CommissioningPage() {
 
           {/* Board Info Display */}
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm transition-all">
-            <button 
+            <button
               onClick={() => setShowJson(!showJson)}
               className="w-full px-6 py-4 flex items-center justify-between bg-gray-50/50 hover:bg-gray-100 transition-colors group"
             >
@@ -453,11 +496,11 @@ export default function CommissioningPage() {
                 </div>
               </div>
             </button>
-            
+
             {showJson && (
               <div className="p-0 animate-in slide-in-from-top-2 duration-300">
-                <textarea 
-                  readOnly 
+                <textarea
+                  readOnly
                   value={boardConfigData}
                   className="w-full h-48 p-6 bg-gray-900 text-[#22a042] font-mono text-[11px] leading-relaxed outline-none border-none resize-none shadow-inner"
                 />
