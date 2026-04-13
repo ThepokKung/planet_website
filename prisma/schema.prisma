@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String     @id @default(uuid()) @map("user_id")
+  username     String     @unique
+  passwordHash String     @map("password_hash")
+  role         String?
+  createdAt    DateTime?  @default(now()) @map("created_at")
+  locations    Location[]
+
+  @@map("users")
+}
+
+model Location {
+  id           String   @id @default(uuid()) @map("location_id")
+  userId       String?  @map("user_id")
+  buildingCode String?  @map("building_code")
+  floorLevel   String?  @map("floor_level")
+  spotName     String?  @map("spot_name")
+  fullCode     String?  @unique @map("full_code")
+  createdAt    DateTime? @default(now()) @map("created_at")
+  user         User?    @relation(fields: [userId], references: [id])
+  robots       Robot[]
+
+  @@map("locations")
+}
+
+model Robot {
+  id                String         @id @map("robot_id")
+  locationId        String?        @map("location_id")
+  name              String?
+  state             String?
+  status            String?
+  currentTrackIndex Int?           @map("current_track_index")
+  batteryLevel      Int?           @map("battery_level")
+  lastActive        DateTime?      @map("last_active")
+  location          Location?      @relation(fields: [locationId], references: [id])
+  pots              Pot[]
+  wateringLogs      WateringLog[]
+  robotLogs         RobotLog[]
+
+  @@map("robots")
+}
+
+model Pot {
+  id         String   @id @default(uuid()) @map("pot_id")
+  robotId    String?  @map("robot_id")
+  trackIndex Int?     @map("track_index")
+  potName    String?  @map("pot_name")
+  robot      Robot?   @relation(fields: [robotId], references: [id])
+  plants     Plant[]
+
+  @@map("pots")
+}
+
+model Plant {
+  id                  String         @id @default(uuid()) @map("plant_id")
+  potId               String?        @map("pot_id")
+  plantIndex          Int?           @map("plant_index")
+  plantName           String?        @map("plant_name")
+  targetMoisturePct   Int?           @map("target_moisture_pct")
+  maxWaterDurationSec Int?           @map("max_water_duration_sec")
+  flowRateMlPerSec    Float?         @map("flow_rate_ml_per_sec")
+  pot                 Pot?           @relation(fields: [potId], references: [id])
+  wateringLogs        WateringLog[]
+
+  @@map("plants")
+}
+
+model WateringLog {
+  id                  String    @id @default(uuid()) @map("log_id")
+  robotId             String?   @map("robot_id")
+  plantId             String?   @map("plant_id")
+  moistureBefore      Int?      @map("moisture_before")
+  moistureAfter       Int?      @map("moisture_after")
+  wateringStartTime   DateTime? @map("watering_start_time")
+  wateringEndTime     DateTime? @map("watering_end_time")
+  wateringDurationSec Int?      @map("watering_duration_sec")
+  waterAmountMl       Int?      @map("water_amount_ml")
+  status              String?
+  createdAt           DateTime? @default(now()) @map("create_at")
+  robot               Robot?    @relation(fields: [robotId], references: [id])
+  plant               Plant?    @relation(fields: [plantId], references: [id])
+
+  @@map("watering_logs")
+}
+
+model RobotLog {
+  id        String    @id @default(uuid()) @map("log_id")
+  robotId   String?   @map("robot_id")
+  state     String?
+  message   String?
+  createdAt DateTime? @default(now()) @map("created_at")
+  robot     Robot?    @relation(fields: [robotId], references: [id])
+
+  @@map("robot_logs")
+}
