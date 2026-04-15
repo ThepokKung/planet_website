@@ -4,17 +4,23 @@ import { DateRangePicker } from "@/components/date-range-picker";
 import { 
   BarChart3, 
   Download,
-  CheckCircle2
+  CheckCircle2,
+  Filter
 } from "lucide-react";
+import { getAccessibleData } from "@/lib/data-access";
+import { AnalyticsFilters } from "@/components/analytics-filters";
 
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  searchParams: Promise<{ from?: string; to?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; robots?: string }>;
 }
 
 export default async function AnalyticsPage({ searchParams }: Props) {
   const params = await searchParams;
+  const { robots: allAccessibleRobots } = await getAccessibleData();
+
+  const selectedRobotIds = params.robots?.split(',').filter(Boolean) || [];
   
   // 1. Resolve date range (default to last 7 days)
   const to = params.to ? new Date(params.to) : new Date();
@@ -30,6 +36,11 @@ export default async function AnalyticsPage({ searchParams }: Props) {
   // 2. Fetch REAL watering data from Prisma
   const wateringLogs = await prisma.wateringLog.findMany({
     where: {
+      robotId: {
+        in: selectedRobotIds.length > 0 
+          ? selectedRobotIds 
+          : allAccessibleRobots.map(r => r.id)
+      },
       createdAt: {
         gte: from,
         lte: to
@@ -37,7 +48,12 @@ export default async function AnalyticsPage({ searchParams }: Props) {
     },
     orderBy: {
       createdAt: 'asc'
-    }
+    },
+    select: {
+      createdAt: true,
+      moistureBefore: true,
+      waterAmountMl: true,
+    },
   });
 
   // 3. Aggregate Summary Data
@@ -104,12 +120,35 @@ export default async function AnalyticsPage({ searchParams }: Props) {
         </div>
       </div>
 
-      <div className="bg-white/50 backdrop-blur-md rounded-3xl p-1 border border-white shadow-xl">
-        <div className="bg-[#fcfdfc] rounded-[22px] p-8">
-          <AnalyticsCharts data={analyticsData} />
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="md:w-72 flex-shrink-0">
+          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm sticky top-24">
+            <h3 className="font-bold text-[#1e1e1e] flex items-center gap-2 mb-6 text-sm uppercase tracking-wider">
+              <Filter className="w-4 h-4 text-[#0E6633]" /> Analytics Filters
+            </h3>
+            <div className="space-y-6">
+              <AnalyticsFilters robots={allAccessibleRobots} />
+              
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <p className="text-[10px] font-bold text-[#757575] uppercase tracking-widest mb-2">Selection Info</p>
+                <p className="text-xs text-[#1e1e1e] font-medium leading-relaxed">
+                  {selectedRobotIds.length === 0 
+                    ? `Showing data for all ${allAccessibleRobots.length} robots in your accessible zones.` 
+                    : `Analyzing performance for ${selectedRobotIds.length} selected robot(s).`}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 space-y-8">
+          <div className="bg-white/50 backdrop-blur-md rounded-3xl p-1 border border-white shadow-xl">
+            <div className="bg-[#fcfdfc] rounded-[22px] p-8">
+              <AnalyticsCharts data={analyticsData} />
+            </div>
+          </div>
         </div>
       </div>
-
     </div>
   );
 }

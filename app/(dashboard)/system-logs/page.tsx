@@ -3,18 +3,24 @@ import { DateRangePicker } from "@/components/date-range-picker";
 import { SystemLogTable } from "@/components/system-log-table";
 import { 
   Download,
-  History
+  History,
+  Filter
 } from "lucide-react";
+import { getAccessibleData } from "@/lib/data-access";
+import { DashboardFilters } from "@/components/dashboard-filters";
 
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  searchParams: Promise<{ from?: string; to?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; zone?: string; robot?: string }>;
 }
 
 export default async function SystemLogsPage({ searchParams }: Props) {
   const params = await searchParams;
-  
+  const { role, zones, robots: allAccessibleRobots } = await getAccessibleData();
+
+  const { zone, robot } = params;
+
   // 1. Resolve date range (default to last 7 days)
   const to = params.to ? new Date(params.to) : new Date();
   const from = params.from ? new Date(params.from) : new Date();
@@ -26,9 +32,19 @@ export default async function SystemLogsPage({ searchParams }: Props) {
   from.setHours(0, 0, 0, 0);
   to.setHours(23, 59, 59, 999);
 
-  // 2. Query 'robot_logs' from Prisma with related Robot name
+  // 2. Determine which robots to fetch logs for
+  let targetRobotIds = allAccessibleRobots.map(r => r.id);
+  if (zone && zone !== 'all') {
+    targetRobotIds = allAccessibleRobots.filter(r => r.locationId === zone).map(r => r.id);
+  }
+  if (robot && robot !== 'all') {
+    targetRobotIds = targetRobotIds.filter(id => id === robot);
+  }
+
+  // 3. Query 'robot_logs' from Prisma
   const robotLogs = await prisma.robotLog.findMany({
     where: {
+      robotId: { in: targetRobotIds },
       createdAt: {
         gte: from,
         lte: to
@@ -43,7 +59,8 @@ export default async function SystemLogsPage({ searchParams }: Props) {
     },
     orderBy: {
       createdAt: 'desc'
-    }
+    },
+    take: 100 // Limit to last 100 entries for performance
   });
 
   return (
@@ -64,7 +81,20 @@ export default async function SystemLogsPage({ searchParams }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-8">
+      <div className="bg-white rounded-[32px] border border-gray-100 shadow-xl overflow-hidden">
+        <div className="px-8 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+           <h3 className="font-bold text-[#1e1e1e] flex items-center gap-2 uppercase text-[10px] tracking-widest">
+            <Filter className="w-4 h-4 text-[#0E6633]" /> Active Filters
+          </h3>
+        </div>
+        <div className="p-4 bg-white">
+          <DashboardFilters 
+            zones={zones} 
+            robots={allAccessibleRobots} 
+            showZoneFilter={role === 'SUPER ADMIN'} 
+          />
+        </div>
+        
         <SystemLogTable logs={robotLogs} />
       </div>
 
@@ -74,6 +104,13 @@ export default async function SystemLogsPage({ searchParams }: Props) {
           <div className="flex flex-col">
             <span className="text-[10px] font-black text-[#757575] uppercase tracking-widest">Selected Range</span>
             <span className="text-xs font-bold text-[#1e1e1e]">{from.toLocaleDateString()} — {to.toLocaleDateString()}</span>
+          </div>
+          <div className="w-px h-8 bg-gray-200" />
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-[#757575] uppercase tracking-widest">Visible Logs</span>
+            <span className="text-xs font-bold text-[#0E6633]">
+              {robotLogs.length} Entries Found
+            </span>
           </div>
           <div className="w-px h-8 bg-gray-200" />
           <div className="flex flex-col">

@@ -167,11 +167,11 @@ export default async function RobotDetailsPage({ params }: PageProps) {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center font-black text-[#0E6633] border border-gray-100 group-hover:bg-[#0E6633] group-hover:text-white transition-all">
-                        {pot.index}
+                        {pot.trackIndex}
                       </div>
                       <div>
                         <h4 className="font-bold text-sm text-[#1e1e1e]">{pot.potName}</h4>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sector {pot.index + 1}</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sector {(pot.trackIndex ?? 0) + 1}</p>
                       </div>
                     </div>
                   </div>
@@ -181,7 +181,7 @@ export default async function RobotDetailsPage({ params }: PageProps) {
                       <div key={plant.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-50/50">
                         <div className="flex items-center gap-2">
                           <Flower2 className="w-3.5 h-3.5 text-[#22a042]" />
-                          <span className="text-xs font-bold text-[#1e1e1e]">{plant.name}</span>
+                          <span className="text-xs font-bold text-[#1e1e1e]">{plant.plantName}</span>
                         </div>
                         <span className="text-[10px] font-bold text-[#22a042] uppercase">Healthy</span>
                       </div>
@@ -219,12 +219,14 @@ export default async function RobotDetailsPage({ params }: PageProps) {
                         <p className="text-sm font-bold text-[#1e1e1e]">Hydration Event</p>
                         <p className="text-[10px] font-medium text-gray-400 flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
-                          {new Date(log.createdAt).toLocaleDateString()} at {new Date(log.createdAt).toLocaleTimeString()}
+                          {log.createdAt
+                            ? `${new Date(log.createdAt).toLocaleDateString()} at ${new Date(log.createdAt).toLocaleTimeString()}`
+                            : "N/A"}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-black text-[#0E6633]">+{log.waterAmount}ml</p>
+                      <p className="text-sm font-black text-[#0E6633]">+{log.waterAmountMl ?? 0}ml</p>
                       <p className="text-[10px] font-bold text-gray-400 uppercase">Moisture: {log.moistureBefore}% → {log.moistureAfter}%</p>
                     </div>
                   </div>

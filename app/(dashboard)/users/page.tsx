@@ -1,134 +1,126 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { Users, UserPlus, Trash2, ShieldCheck, User } from "lucide-react";
-import { createUserAction, deleteUserAction } from "@/actions/users";
-import { revalidatePath } from "next/cache";
+import { Users, UserPlus, Trash2, ShieldCheck, Shield, MapPin, Key } from "lucide-react";
+import { deleteUserAction } from "@/actions/users";
+import { UserForm } from "@/components/user-form";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+export const dynamic = 'force-dynamic';
 
 export default async function UserManagementPage() {
   const session = await getSession();
 
-  // STRICT RULE: Non-admin can't see/access this page
-  if (!session || session.role !== "ADMIN") {
+  if (!session || session.role !== "SUPER ADMIN") {
     redirect("/dashboard");
   }
 
   const users = await prisma.user.findMany({
+    include: {
+      locations: true
+    },
     orderBy: { createdAt: 'desc' }
   });
 
+  const zones = await prisma.location.findMany({
+    orderBy: { spotName: 'asc' }
+  });
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-[#1e1e1e]">User Management</h2>
-          <p className="text-[#757575] mt-1">Manage system administrators and operators</p>
-        </div>
+    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e]">Access Management</h2>
+        <p className="text-[#757575] mt-1">Control system hierarchy and zone assignments</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Create User Form */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h3 className="font-bold text-[#1e1e1e] flex items-center gap-2 mb-6">
-              <UserPlus className="w-5 h-5 text-[#0E6633]" /> Register New User
-            </h3>
-            
-            <form action={createUserAction} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-[#757575] uppercase mb-1">Email / Username</label>
-                <input 
-                  name="username"
-                  type="email" 
-                  required
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#0E6633]/20 outline-none transition-all"
-                  placeholder="operator@vertical-forest.local"                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-[#757575] uppercase mb-1">Password</label>
-                <input 
-                  name="password"
-                  type="password" 
-                  required
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#0E6633]/20 outline-none transition-all"
-                  placeholder="••••••••"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-[#757575] uppercase mb-1">System Role</label>
-                <select 
-                  name="role"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#0E6633]/20 outline-none transition-all appearance-none bg-white"
-                >
-                  <option value="USER">Standard Operator</option>
-                  <option value="ADMIN">Administrator</option>
-                </select>
-              </div>
-              <button 
-                type="submit"
-                className="w-full py-3 bg-[#0E6633] text-white rounded-xl font-bold text-sm hover:bg-[#0c592b] transition-all flex items-center justify-center gap-2 mt-2 shadow-md shadow-[#0E6633]/20"
-              >
-                Create Account
-              </button>
-            </form>
-          </div>
+        <div className="lg:col-span-4">
+          <UserForm zones={zones} />
         </div>
 
-        {/* User List Table */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-              <h3 className="font-bold text-[#1e1e1e] flex items-center gap-2">
-                <Users className="w-5 h-5 text-[#0E6633]" /> System Accounts
+        {/* User List */}
+        <div className="lg:col-span-8">
+          <div className="bg-white rounded-[32px] border border-gray-100 shadow-xl overflow-hidden">
+            <div className="px-8 py-6 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+              <h3 className="font-bold text-[#1e1e1e] flex items-center gap-2 uppercase text-[10px] tracking-widest">
+                <Users className="w-4 h-4 text-[#0E6633]" /> Active Personnel
               </h3>
+              <span className="text-[10px] font-mono text-[#757575] bg-white px-3 py-1 rounded-full border border-gray-100">
+                {users.length} Registered
+              </span>
             </div>
             
             <div className="overflow-x-auto">
-              <table className="w-full text-left">
+              <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="text-[#757575] text-[10px] uppercase font-bold tracking-widest border-b border-gray-100">
-                    <th className="px-6 py-4">Account</th>
-                    <th className="px-6 py-4">Role</th>
-                    <th className="px-6 py-4">Created</th>
-                    <th className="px-6 py-4 text-right">Actions</th>
+                    <th className="px-8 py-5">Identities</th>
+                    <th className="px-8 py-5">Role & Clearance</th>
+                    <th className="px-8 py-5">Assigned Zones</th>
+                    <th className="px-8 py-5 text-right">Ops</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {users.map((u) => (
-                    <tr key={u.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                    <tr key={u.id} className="hover:bg-gray-50/50 transition-colors group">
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-4">
                           <div className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
-                            u.role === 'ADMIN' ? "bg-[#0E6633] text-white" : "bg-gray-100 text-[#757575]"
+                            "w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-bold shadow-inner",
+                            u.role === 'SUPER ADMIN' ? "bg-black text-white" : "bg-green-50 text-[#0E6633]"
                           )}>
-                            {u.role === 'ADMIN' ? <ShieldCheck className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                            {u.role === 'SUPER ADMIN' ? <ShieldCheck className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
                           </div>
                           <div>
                             <p className="font-bold text-sm text-[#1e1e1e]">{u.username}</p>
-                            <p className="text-[10px] text-[#757575] font-mono">{u.id.substring(0, 8)}</p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <Key className="w-3 h-3 text-[#757575]" />
+                              <p className="text-[9px] text-[#757575] font-mono uppercase tracking-tighter">{u.id}</p>
+                            </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-8 py-6">
                         <span className={cn(
-                          "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-tight",
-                          u.role === 'ADMIN' ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
+                          "px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider",
+                          u.role === 'SUPER ADMIN' ? "bg-black text-white" : "bg-green-100 text-[#0E6633]"
                         )}>
                           {u.role}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-xs text-[#757575]">
-                        {new Date(u.createdAt).toLocaleDateString()}
+                      <td className="px-8 py-6">
+                        {u.role === 'SUPER ADMIN' ? (
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">All Zones Permitted</span>
+                        ) : (
+                          <div className="flex flex-wrap gap-1 max-w-[200px]">
+                            {u.locations.length > 0 ? u.locations.map(loc => (
+                              <span key={loc.id} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-50 text-[#757575] border border-gray-100 rounded text-[9px] font-bold">
+                                <MapPin className="w-2.5 h-2.5" /> {loc.spotName || loc.fullCode}
+                              </span>
+                            )) : (
+                              <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest italic">No Zones Assigned</span>
+                            )}
+                          </div>
+                        )}
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-8 py-6 text-right">
                         {u.id !== session.userId && (
                           <form action={async () => {
                             "use server";
-                            await deleteUserAction(u.id);
+                            try {
+                              await deleteUserAction(u.id);
+                            } catch (e) {
+                              console.error(e);
+                            }
                           }}>
-                            <button className="text-red-400 hover:text-red-600 p-2 transition-colors">
-                              <Trash2 className="w-4 h-4" />
+                            <button className="text-gray-300 hover:text-red-500 p-2 transition-colors">
+                              <Trash2 className="w-5 h-5" />
                             </button>
                           </form>
                         )}
@@ -143,8 +135,4 @@ export default async function UserManagementPage() {
       </div>
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(" ");
 }

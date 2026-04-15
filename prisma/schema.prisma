@@ -10,11 +10,21 @@ model User {
   id           String     @id @default(uuid()) @map("user_id")
   username     String     @unique
   passwordHash String     @map("password_hash")
-  role         String?
+  role         String?    @default("ADMIN") // SUPER ADMIN, ADMIN
   createdAt    DateTime?  @default(now()) @map("created_at")
   locations    Location[]
 
   @@map("users")
+}
+
+model PlantTemplate {
+  id                String   @id @default(uuid()) @map("template_id")
+  name              String   @unique
+  targetMoisturePct Int      @map("target_moisture_pct")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("plant_templates")
 }
 
 model Location {

@@ -1,138 +1,121 @@
 "use server";
 
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 
-export async function getRobotConfigAction(robotId: string) {
-  const session = await getSession();
-  if (session?.role !== "ADMIN") {
-    throw new Error("Unauthorized");
-  }
+const saveRobotSchema = z.object({
+  robot_id: z.string(),
+  robot_name: z.string(),
+  locationId: z.string(),
+  pots: z.array(z.object({
+    index: z.number(),
+    potName: z.string(),
+    plants: z.array(z.object({
+      name: z.string(),
+      targetMoisturePct: z.number().optional(),
+    }))
+  }))
+});
 
-  try {
-    const robot = await prisma.robot.findUnique({
-      where: { id: robotId },
-      include: {
-        pots: {
-          include: { plants: true },
-          orderBy: { trackIndex: 'asc' }
+export async function getRobotConfigAction(robotId: string) {
+  const robot = await prisma.robot.findUnique({
+    where: { id: robotId },
+    include: {
+      pots: {
+        include: {
+          plants: true
         }
       }
-    });
+    }
+  });
 
-    if (!robot) return null;
+  if (!robot) return null;
 
-    return {
-      robotId: robot.id,
-      robotName: robot.name || "",
-      pots: robot.pots.map(p => ({
-        index: p.trackIndex,
-        potName: p.potName || "",
-        plants: p.plants.map(pl => ({ 
-          name: pl.plantName || "",
-          index: pl.plantIndex || 0,
-          targetMoisture: pl.targetMoisturePct || 50,
-          maxWaterDuration: pl.maxWaterDurationSec || 30,
-          flowRate: pl.flowRateMlPerSec || 1.5
-        }))
+  return {
+    robotName: robot.name,
+    pots: robot.pots.map(p => ({
+      index: p.trackIndex,
+      potName: p.potName,
+      plants: p.plants.map(pl => ({
+        name: pl.plantName,
+        targetMoisturePct: pl.targetMoisturePct,
       }))
-    };
-  } catch (error) {
-    console.error("Failed to fetch robot config:", error);
-    return null;
-  }
+    }))
+  };
 }
 
-export async function saveRobotConfigAction(config: any) {
-  const session = await getSession();
-  if (session?.role !== "ADMIN") {
-    return { error: "Unauthorized" };
+export async function saveRobotConfigAction(data: any) {
+  const result = saveRobotSchema.safeParse(data);
+  if (!result.success) {
+    return { success: false, error: result.error.message };
   }
 
+  const { robot_id, robot_name, locationId, pots } = result.data;
+
   try {
+    // 1. Check if robot exists or create it
     await prisma.robot.upsert({
-      where: { id: config.robot_id },
-      update: { name: config.robot_name, status: 'Idle' },
+      where: { id: robot_id },
+      update: { 
+        name: robot_name,
+        locationId: locationId
+      },
       create: { 
-        id: config.robot_id, 
-        name: config.robot_name, 
-        status: 'Idle',
-        batteryLevel: 100,
-        lastActive: new Date()
+        id: robot_id, 
+        name: robot_name,
+        locationId: locationId,
+        status: 'Ready',
+        state: 'SLEEP'
       }
     });
 
-    // Delete existing pots (and cascaded plants handled by Prisma relations if configured, 
-    // but here we manually delete or use onDelete: Cascade in schema)
-    // Actually, in the new schema, I should ensure cascade deletion or manually handle it.
-    // The previous schema had onDelete: Cascade on Plant -> Pot.
-    
-    // First, let's find existing pots for this robot to delete their plants if cascade isn't automatic
-    const existingPots = await prisma.pot.findMany({ where: { robotId: config.robot_id } });
+    // 2. Clear existing pots/plants for this robot to overwrite
+    const existingPots = await prisma.pot.findMany({ where: { robotId: robot_id } });
     const potIds = existingPots.map(p => p.id);
     
     await prisma.plant.deleteMany({ where: { potId: { in: potIds } } });
-    await prisma.pot.deleteMany({ where: { robotId: config.robot_id } });
+    await prisma.pot.deleteMany({ where: { robotId: robot_id } });
 
-    // Create pots and their plants
-    for (const p of config.pots) {
-      await prisma.pot.create({
+    // 3. Create new pots and plants
+    for (const potData of pots) {
+      const pot = await prisma.pot.create({
         data: {
-          robotId: config.robot_id,
-          trackIndex: p.index,
-          potName: p.potName || `Pot ${p.index}`,
-          plants: {
-            create: p.plants.map((pl: any, idx: number) => ({
-              plantName: pl.name,
-              plantIndex: idx,
-              targetMoisturePct: 50,
-              maxWaterDurationSec: 30,
-              flowRateMlPerSec: 1.5
-            }))
-          }
+          robotId: robot_id,
+          trackIndex: potData.index,
+          potName: potData.potName
         }
       });
+
+      for (let i = 0; i < potData.plants.length; i++) {
+        await prisma.plant.create({
+          data: {
+            potId: pot.id,
+            plantIndex: i,
+            plantName: potData.plants[i].name,
+            targetMoisturePct: potData.plants[i].targetMoisturePct,
+          }
+        });
+      }
     }
 
-    revalidatePath("/details");
     revalidatePath("/dashboard");
-    revalidatePath("/analytics");
+    revalidatePath("/setup");
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Save config error:", error);
-    return { error: "Failed to save configuration." };
+    return { success: false, error: error.message };
   }
 }
 
-export async function updatePlantNameAction(plantId: string, newName: string) {
-  const session = await getSession();
-  if (session?.role !== "ADMIN") {
-    return { error: "Unauthorized" };
-  }
-
+export async function getRobotLogsAction(robotId: string, page: number = 1) {
+  const pageSize = 50;
   try {
-    await prisma.plant.update({
-      where: { id: plantId },
-      data: { plantName: newName }
-    });
-    revalidatePath("/details");
-    revalidatePath("/analytics");
-    return { success: true };
-  } catch (error) {
-    console.error("Update plant error:", error);
-    return { error: "Failed to update plant name." };
-  }
-}
-
-export async function getRobotLogsAction(robotId: string, page: number = 1, pageSize: number = 50) {
-  try {
-    const skip = (page - 1) * pageSize;
     const [logs, total] = await Promise.all([
       prisma.robotLog.findMany({
         where: { robotId },
         orderBy: { createdAt: 'desc' },
-        skip,
+        skip: (page - 1) * pageSize,
         take: pageSize,
       }),
       prisma.robotLog.count({
@@ -147,6 +130,20 @@ export async function getRobotLogsAction(robotId: string, page: number = 1, page
     };
   } catch (error) {
     console.error("Failed to fetch robot logs:", error);
-    return { logs: [], total: 0, totalPages: 0 };
+    throw new Error("Failed to fetch logs.");
+  }
+}
+
+export async function updatePlantNameAction(plantId: string, newName: string) {
+  try {
+    await prisma.plant.update({
+      where: { id: plantId },
+      data: { plantName: newName }
+    });
+    revalidatePath("/details");
+    return { success: true };
+  } catch (error) {
+    console.error("Update plant name error:", error);
+    return { success: false, error: "Failed to update plant name." };
   }
 }

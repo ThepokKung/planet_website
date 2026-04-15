@@ -3,10 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // ย้ายมาไว้ด้านนอกตามที่ Log แนะนำ
   allowedDevOrigins: ["192.168.1.155", "localhost", "0.0.0.0"],
-  
-  devIndicators: {
-    appIsrStatus: false,
-  },
+
   logging: {
     fetches: {
       fullUrl: true,

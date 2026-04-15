@@ -22,8 +22,9 @@ import { updatePlantNameAction } from "@/actions/robots";
 interface Plant {
   id: string;
   plantName: string | null;
-  status: string | null;
-  moisture: number | null;
+  status?: string | null;
+  moisture?: number | null;
+  targetMoisturePct?: number | null;
 }
 
 interface Pot {
