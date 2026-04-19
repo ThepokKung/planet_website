@@ -46,6 +46,7 @@ export async function loginAction(formData: FormData) {
     const expires = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours
     const session = await encrypt({ 
       userId: user.id, 
+      username: user.username,
       role: user.role || 'USER',
       expires 
     });

@@ -30,30 +30,54 @@ async function main() {
   console.log('--- 🏗️  Vertical Forest Seed: Creating Base Infrastructure ---');
 
   // 2. Setup Base Data
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+  const hashedAdminPassword = await bcrypt.hash('admin123', 10);
+  const hashedSuperAdminPassword = await bcrypt.hash('superadmin123', 10);
+
+  const superAdmin = await prisma.user.create({
+    data: {
+      username: 'superadmin',
+      passwordHash: hashedSuperAdminPassword,
+      role: 'SUPER ADMIN',
+    },
+  });
+
   const admin = await prisma.user.create({
     data: {
       username: 'admin',
-      passwordHash: hashedPassword,
+      passwordHash: hashedAdminPassword,
       role: 'ADMIN',
     },
   });
 
-  const location = await prisma.location.create({
-    data: {
-      buildingCode: 'N9',
-      floorLevel: '1',
-      spotName: 'Lab-1',
-      fullCode: 'N9-1-1',
-      userId: admin.id,
-    },
-  });
+  console.log('--- 🏗️  Vertical Forest Seed: Generating 35 Locations (S1-S15, N1-N20) ---');
+  
+  const locationsData = [
+    ...Array.from({ length: 15 }, (_, i) => ({ code: `S${i + 1}`, building: `S${i + 1}`, name: `South Zone ${i + 1}` })),
+    ...Array.from({ length: 20 }, (_, i) => ({ code: `N${i + 1}`, building: `N${i + 1}`, name: `North Zone ${i + 1}` }))
+  ];
+
+  const createdLocations = [];
+  for (const loc of locationsData) {
+    const newLoc = await prisma.location.create({
+      data: {
+        buildingCode: loc.building,
+        floorLevel: '1',
+        spotName: loc.name,
+        fullCode: loc.code,
+        userId: admin.id,
+      },
+    });
+    createdLocations.push(newLoc);
+  }
+
+  // Use the first location for our demo robot
+  const demoLocation = createdLocations.find(l => l.fullCode === 'N1') || createdLocations[0];
 
   const robot = await prisma.robot.create({
     data: {
-      id: 'BOT-001',
+      id: `B-${demoLocation.buildingCode}-1`,
       name: 'Vertical Forest Alpha',
-      locationId: location.id,
+      locationId: demoLocation.id,
       state: 'SLEEP',
       status: 'Ready',
       batteryLevel: 98,

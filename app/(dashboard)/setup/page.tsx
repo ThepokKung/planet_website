@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getAccessibleData } from "@/lib/data-access";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
 import SetupClientPage from "./setup-client";
 
 export const dynamic = 'force-dynamic';
@@ -11,6 +13,11 @@ interface PlantTemplateItem {
 }
 
 export default async function SetupPage() {
+  const session = await getSession();
+  if (!session) {
+    redirect("/login");
+  }
+
   const { zones } = await getAccessibleData();
   const plantTemplate = (prisma as any).plantTemplate;
 

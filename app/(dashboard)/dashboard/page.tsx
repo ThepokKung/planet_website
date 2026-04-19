@@ -88,7 +88,7 @@ export default async function Dashboard({
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e]">Dashboard Overview</h2>
           <p className="text-[#757575] mt-1">
-            {role === 'SUPER ADMIN' ? 'Full access monitoring' : `Zone: ${zones.map(z => z.spotName).join(', ')}`}
+            {role === 'SUPER ADMIN' || !role ? 'Full access monitoring' : `Zone: ${zones.map(z => z.spotName).join(', ')}`}
           </p>
         </div>
         <div className="flex gap-2">
@@ -101,7 +101,7 @@ export default async function Dashboard({
       <DashboardFilters 
         zones={zones} 
         robots={allAccessibleRobots} 
-        showZoneFilter={role === 'SUPER ADMIN'} 
+        showZoneFilter={true} 
       />
 
       {/* Stat Cards */}
@@ -139,7 +139,7 @@ export default async function Dashboard({
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-gray-100 text-[#757575] text-xs uppercase tracking-wider font-bold">
-                <th className="px-6 py-4">Robot ID</th>
+                <th className="px-6 py-4">Robot / ID</th>
                 <th className="px-6 py-4">Zone</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-center">Battery</th>
@@ -161,8 +161,8 @@ export default async function Dashboard({
                   <tr key={robot.id} className="hover:bg-gray-50 transition-colors group">
                     <td className="px-6 py-4">
                       <Link href={`/details/${robot.id}`} prefetch={false} className="group/link">
-                        <p className="font-bold text-sm text-[#1e1e1e] group-hover/link:text-[#0E6633] transition-colors">{robot.id}</p>
-                        <p className="text-[10px] text-[#757575] font-mono">{robot.name || "Default"}</p>
+                        <p className="font-bold text-sm text-[#1e1e1e] group-hover/link:text-[#0E6633] transition-colors">{robot.name || "Default Unit"}</p>
+                        <p className="text-[10px] text-[#757575] font-mono uppercase tracking-tighter">{robot.id}</p>
                       </Link>
                     </td>
                     <td className="px-6 py-4">

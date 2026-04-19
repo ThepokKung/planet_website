@@ -91,7 +91,7 @@ export default async function SystemLogsPage({ searchParams }: Props) {
           <DashboardFilters 
             zones={zones} 
             robots={allAccessibleRobots} 
-            showZoneFilter={role === 'SUPER ADMIN'} 
+            showZoneFilter={true} 
           />
         </div>
         

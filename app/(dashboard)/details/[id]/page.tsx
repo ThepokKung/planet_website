@@ -73,15 +73,15 @@ export default async function RobotDetailsPage({ params }: PageProps) {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-4xl font-black text-[#1e1e1e] tracking-tighter">{robot.id}</h2>
+          <div className="flex items-center gap-3 mb-1">
+            <h2 className="text-4xl font-black text-[#1e1e1e] tracking-tighter">{robot.name || "Unnamed Robot Unit"}</h2>
             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm ${
               robot.status === 'Active' ? 'bg-[#22a042] text-white' : 'bg-yellow-400 text-yellow-900'
             }`}>
               {robot.status || 'Idle'}
             </span>
           </div>
-          <p className="text-lg text-[#757575] font-medium">{robot.name || "Unnamed Robot Unit"}</p>
+          <p className="text-lg text-[#757575] font-mono font-bold uppercase tracking-tighter">{robot.id}</p>
         </div>
         
         <div className="flex gap-4">

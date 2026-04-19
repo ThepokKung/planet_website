@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { getSession } from "@/lib/session";
 
 const saveRobotSchema = z.object({
   robot_id: z.string(),
@@ -12,40 +13,16 @@ const saveRobotSchema = z.object({
     index: z.number(),
     potName: z.string(),
     plants: z.array(z.object({
-      name: z.string(),
+      type: z.string(),
       targetMoisturePct: z.number().optional(),
     }))
   }))
 });
 
-export async function getRobotConfigAction(robotId: string) {
-  const robot = await prisma.robot.findUnique({
-    where: { id: robotId },
-    include: {
-      pots: {
-        include: {
-          plants: true
-        }
-      }
-    }
-  });
-
-  if (!robot) return null;
-
-  return {
-    robotName: robot.name,
-    pots: robot.pots.map(p => ({
-      index: p.trackIndex,
-      potName: p.potName,
-      plants: p.plants.map(pl => ({
-        name: pl.plantName,
-        targetMoisturePct: pl.targetMoisturePct,
-      }))
-    }))
-  };
-}
-
 export async function saveRobotConfigAction(data: any) {
+  const session = await getSession();
+  if (!session) throw new Error("Unauthorized");
+
   const result = saveRobotSchema.safeParse(data);
   if (!result.success) {
     return { success: false, error: result.error.message };
@@ -54,23 +31,39 @@ export async function saveRobotConfigAction(data: any) {
   const { robot_id, robot_name, locationId, pots } = result.data;
 
   try {
+    // Resolve location ID: Handle 'Unassigned', short codes (e.g., 'S12'), or raw UUIDs
+    let finalLocationId: string | null = null;
+    
+    if (locationId && locationId !== "Unassigned") {
+      if (locationId.length < 10) {
+        // Resolve from fullCode
+        const loc = await prisma.location.findUnique({
+          where: { fullCode: locationId }
+        });
+        finalLocationId = loc ? loc.id : null;
+      } else {
+        // Assume it's a valid UUID
+        finalLocationId = locationId;
+      }
+    }
+
     // 1. Check if robot exists or create it
     await prisma.robot.upsert({
       where: { id: robot_id },
       update: { 
         name: robot_name,
-        locationId: locationId
+        locationId: finalLocationId
       },
       create: { 
         id: robot_id, 
         name: robot_name,
-        locationId: locationId,
+        locationId: finalLocationId,
         status: 'Ready',
         state: 'SLEEP'
       }
     });
 
-    // 2. Clear existing pots/plants for this robot to overwrite
+    // 2. Clear existing pots/plants
     const existingPots = await prisma.pot.findMany({ where: { robotId: robot_id } });
     const potIds = existingPots.map(p => p.id);
     
@@ -78,6 +71,7 @@ export async function saveRobotConfigAction(data: any) {
     await prisma.pot.deleteMany({ where: { robotId: robot_id } });
 
     // 3. Create new pots and plants
+    let plantCount = 0;
     for (const potData of pots) {
       const pot = await prisma.pot.create({
         data: {
@@ -92,12 +86,23 @@ export async function saveRobotConfigAction(data: any) {
           data: {
             potId: pot.id,
             plantIndex: i,
-            plantName: potData.plants[i].name,
+            plantName: potData.plants[i].type,
             targetMoisturePct: potData.plants[i].targetMoisturePct,
           }
         });
+        plantCount++;
       }
     }
+
+    // 4. Record Audit Log
+    await prisma.robotLog.create({
+      data: {
+        robot: { connect: { id: robot_id } },
+        user: session.userId ? { connect: { id: session.userId } } : undefined,
+        state: 'CONFIG_UPDATE',
+        message: `[USER_ACTION] User '${session.username || 'System'}' อัปเดตการตั้งค่า: ${pots.length} กระถาง, ${plantCount} ต้นไม้`
+      }
+    });
 
     revalidatePath("/dashboard");
     revalidatePath("/setup");
@@ -114,6 +119,7 @@ export async function getRobotLogsAction(robotId: string, page: number = 1) {
     const [logs, total] = await Promise.all([
       prisma.robotLog.findMany({
         where: { robotId },
+        include: { user: { select: { username: true } } },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -135,11 +141,28 @@ export async function getRobotLogsAction(robotId: string, page: number = 1) {
 }
 
 export async function updatePlantNameAction(plantId: string, newName: string) {
+  const session = await getSession();
+  if (!session) throw new Error("Unauthorized");
+
   try {
-    await prisma.plant.update({
+    const updatedPlant = await prisma.plant.update({
       where: { id: plantId },
-      data: { plantName: newName }
+      data: { plantName: newName },
+      include: { pot: { select: { robotId: true } } }
     });
+
+    // Audit Log for plant rename
+    if (updatedPlant.pot?.robotId) {
+      await prisma.robotLog.create({
+        data: {
+          robotId: updatedPlant.pot.robotId,
+          userId: session.userId,
+          state: 'PLANT_RENAME',
+          message: `[USER_ACTION] User '${session.username}' เปลี่ยนชื่อพืชเป็น: '${newName}'`
+        }
+      });
+    }
+
     revalidatePath("/details");
     return { success: true };
   } catch (error) {

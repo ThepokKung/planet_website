@@ -102,24 +102,59 @@ export function UserForm({ zones }: { zones: any[] }) {
         </div>
 
         {formData.role === 'ADMIN' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <label className="text-[10px] font-bold text-[#757575] uppercase tracking-widest px-1 flex items-center justify-between">
               <span>Assign Zones</span>
               <span className="text-[10px] text-[#0E6633] normal-case font-medium">{formData.locationIds.length} Selected</span>
             </label>
-            <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto p-1">
-              {zones.map(z => (
-                <div 
-                  key={z.id}
-                  onClick={() => toggleZone(z.id)}
-                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${formData.locationIds.includes(z.id) ? 'bg-green-50 border-[#0E6633]' : 'bg-white border-gray-100 hover:bg-gray-50'}`}
-                >
-                  <MapPin className={`w-3.5 h-3.5 ${formData.locationIds.includes(z.id) ? 'text-[#0E6633]' : 'text-gray-400'}`} />
-                  <span className={`text-[11px] font-bold ${formData.locationIds.includes(z.id) ? 'text-[#0E6633]' : 'text-gray-500'}`}>
-                    {z.spotName || z.fullCode}
-                  </span>
-                </div>
-              ))}
+            
+            <div className="space-y-4 max-h-[320px] overflow-y-auto p-1 pr-2 custom-scrollbar">
+              {[
+                { label: 'North', prefix: 'N' },
+                { label: 'South', prefix: 'S' }
+              ].map(group => {
+                const groupZones = zones.filter(z => (z.fullCode || "").startsWith(group.prefix));
+                const allSelected = groupZones.length > 0 && groupZones.every(z => formData.locationIds.includes(z.id));
+                
+                return (
+                  <div key={group.label} className="space-y-2">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">{group.label} Tower</span>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const groupIds = groupZones.map(z => z.id);
+                          if (allSelected) {
+                            setFormData({ ...formData, locationIds: formData.locationIds.filter(id => !groupIds.includes(id)) });
+                          } else {
+                            const newIds = Array.from(new Set([...formData.locationIds, ...groupIds]));
+                            setFormData({ ...formData, locationIds: newIds });
+                          }
+                        }}
+                        className="text-[9px] font-bold text-[#0E6633] hover:underline"
+                      >
+                        {allSelected ? 'Deselect All' : 'Select All'}
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {groupZones.map(z => (
+                        <button
+                          key={z.id}
+                          type="button"
+                          onClick={() => toggleZone(z.id)}
+                          className={`py-2 rounded-lg border text-[10px] font-bold transition-all ${
+                            formData.locationIds.includes(z.id) 
+                              ? 'bg-[#0E6633] border-[#0E6633] text-white shadow-sm' 
+                              : 'bg-white border-gray-100 text-gray-400 hover:border-gray-300'
+                          }`}
+                        >
+                          {z.fullCode}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

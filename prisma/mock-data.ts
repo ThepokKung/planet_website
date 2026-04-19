@@ -11,6 +11,7 @@ async function main() {
 
   // Clean old data to avoid FK errors - Prisma model names are lowercase in the client
   await prisma.wateringLog.deleteMany({});
+  await prisma.robotLog.deleteMany({});
   await prisma.plant.deleteMany({});
   await prisma.pot.deleteMany({});
 
@@ -26,9 +27,9 @@ async function main() {
 
   // 2. Create Pots & Multiple Plants per Pot
   const potsData = [
-    { robotId: "BOT-001", trackIndex: 0, plants: ["Basil", "Mint", "Parsley"] },
-    { robotId: "BOT-001", trackIndex: 1, plants: ["Tomato", "Chili"] },
-    { robotId: "BOT-002", trackIndex: 0, plants: ["Lettuce", "Kale", "Spinach"] },
+    { robotId: "BOT-001", trackIndex: 0, potName: "Alpha-1", plants: ["Basil", "Mint", "Parsley"] },
+    { robotId: "BOT-001", trackIndex: 1, potName: "Alpha-2", plants: ["Tomato", "Chili"] },
+    { robotId: "BOT-002", trackIndex: 0, potName: "Beta-1", plants: ["Lettuce", "Kale", "Spinach"] },
   ];
 
   for (const p of potsData) {
@@ -36,13 +37,14 @@ async function main() {
       data: {
         robotId: p.robotId,
         trackIndex: p.trackIndex,
-        targetMoisturePct: 50,
-        maxWaterDurationSec: 30,
+        potName: p.potName,
         plants: {
-          create: p.plants.map(name => ({
-            name,
-            status: "Healthy",
-            moisture: Math.floor(Math.random() * 40) + 30
+          create: p.plants.map((name, index) => ({
+            plantIndex: index,
+            plantName: name,
+            targetMoisturePct: Math.floor(Math.random() * 20) + 40,
+            maxWaterDurationSec: 30,
+            flowRateMlPerSec: 2.5
           }))
         }
       }

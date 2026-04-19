@@ -78,24 +78,28 @@ export function Sidebar({ role }: { role?: string }) {
           );
         })}
 
-        <div className="my-4 px-4">
-          <div className="h-px bg-white/10 w-full" />
-          <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mt-4 mb-2">Management</p>
-        </div>
-        
-        {adminItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-white hover:bg-white hover:bg-opacity-10",
-              pathname === item.href && "bg-white/20 border-l-4 border-[#22a042] pl-3"
-            )}
-          >
-            <item.icon className="w-5 h-5" />
-            {item.name}
-          </Link>
-        ))}
+        {role && (
+          <>
+            <div className="my-4 px-4">
+              <div className="h-px bg-white/10 w-full" />
+              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mt-4 mb-2">Management</p>
+            </div>
+            
+            {adminItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-white hover:bg-white hover:bg-opacity-10",
+                  pathname === item.href && "bg-white/20 border-l-4 border-[#22a042] pl-3"
+                )}
+              >
+                <item.icon className="w-5 h-5" />
+                {item.name}
+              </Link>
+            ))}
+          </>
+        )}
 
         {isSuperAdmin && (
           <>

@@ -80,24 +80,44 @@ export default function SetupClientPage({ zones, plantTemplates }: Props) {
     return map;
   }, [plantTemplates]);
 
-  // Compute JSON payload - Memoized to only change when inputs change
+  // Compute JSON payload - Optimized for v1.2.1
   const mappedConfig = useMemo(() => {
+    const plantConfig: Record<string, { targetMoisturePct: number }> = {};
+    
+    // 1. Build plant_config from selected templates in pots
+    pots.forEach(pot => {
+      pot.plants.forEach(plant => {
+        const template = templateMap[plant.templateId];
+        if (template && !plantConfig[template.name]) {
+          plantConfig[template.name] = {
+            targetMoisturePct: template.targetMoisturePct
+          };
+        }
+      });
+    });
+
+    // 2. Map pots and plants using the config references
+    const selectedZone = zones.find(z => z.id === zoneId);
+    const readableZoneCode = selectedZone?.fullCode || "Unassigned";
+
     return {
       robot_id: robotId,
       robot_name: robotName,
-      locationId: zoneId,
-      pots: pots.map(p => ({
+      locationId: readableZoneCode,
+      plant_config: plantConfig,
+      pots: pots.map((p, pIdx) => ({
         index: p.index,
         potName: p.potName,
-        plants: p.plants.map(pl => {
+        plants: p.plants.map((pl, plIdx) => {
           const template = templateMap[pl.templateId];
+          const plantType = template?.name || "Unknown";
           return {
-            name: template?.name || "Unknown Plant",
-            targetMoisturePct: template?.targetMoisturePct
+            id: `p-${pIdx}-${plIdx}`, // Local reference ID
+            type: plantType
           };
         })
       })),
-      version: "1.2.0",
+      version: "1.2.1",
       timestamp: new Date().toISOString()
     };
   }, [robotId, robotName, zoneId, pots, templateMap]);
@@ -129,6 +149,10 @@ export default function SetupClientPage({ zones, plantTemplates }: Props) {
     } catch (error: any) {
       console.error(error);
       setIsConnected(false);
+      setStatus({ 
+        type: 'error', 
+        msg: error.message || 'Failed to connect. Make sure your browser supports Web Serial.' 
+      });
     } finally {
       setIsConnecting(false);
     }
@@ -204,10 +228,13 @@ export default function SetupClientPage({ zones, plantTemplates }: Props) {
 
     const selectedZone = zones.find(z => z.id === id);
     if (selectedZone) {
-      const buildingCode = selectedZone.buildingCode || "UNK";
+      // Use fullCode from DB (e.g. 'N10', 'S12') to ensure correct Robot ID generation
+      const bCode = selectedZone.fullCode || "UNK";
       const existingCount = selectedZone.robots?.length || 0;
+      
+      // Increment and pad to 3 digits (e.g., 001, 002)
       const nextNumber = (existingCount + 1).toString().padStart(3, '0');
-      setRobotId(`BOT-${buildingCode}-${nextNumber}`);
+      setRobotId(`B-${bCode}-${nextNumber}`);
     }
   };
 
@@ -256,17 +283,7 @@ export default function SetupClientPage({ zones, plantTemplates }: Props) {
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-[#757575] uppercase tracking-widest px-1">Hardware ID</label>
-                  <input 
-                    type="text" 
-                    value={robotId} 
-                    onChange={(e) => setRobotId(e.target.value)} 
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 font-bold text-[#1e1e1e] focus:ring-2 focus:ring-[#0E6633] outline-none transition-all" 
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-[#757575] uppercase tracking-widest px-1">Display Name</label>
+                  <label className="text-[10px] font-bold text-[#757575] uppercase tracking-widest px-1">Robot Name</label>
                   <input 
                     type="text" 
                     placeholder="e.g. Lobby Forest A"
@@ -277,7 +294,7 @@ export default function SetupClientPage({ zones, plantTemplates }: Props) {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-[#757575] uppercase tracking-widest px-1">Active Zone</label>
+                  <label className="text-[10px] font-bold text-[#757575] uppercase tracking-widest px-1">Building Zone</label>
                   <select 
                     value={zoneId}
                     onChange={(e) => handleZoneChange(e.target.value)}
@@ -286,6 +303,16 @@ export default function SetupClientPage({ zones, plantTemplates }: Props) {
                     <option value="">Unassigned</option>
                     {zones.map(z => <option key={z.id} value={z.id}>{z.spotName || z.fullCode}</option>)}
                   </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-[#757575] uppercase tracking-widest px-1">Robot ID</label>
+                  <input 
+                    type="text" 
+                    value={robotId} 
+                    onChange={(e) => setRobotId(e.target.value)} 
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 font-bold text-[#1e1e1e] focus:ring-2 focus:ring-[#0E6633] outline-none transition-all" 
+                  />
                 </div>
               </div>
             </div>

@@ -13,33 +13,40 @@ import { AnalyticsFilters } from "@/components/analytics-filters";
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  searchParams: Promise<{ from?: string; to?: string; robots?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; robots?: string; zone?: string }>;
 }
 
 export default async function AnalyticsPage({ searchParams }: Props) {
   const params = await searchParams;
-  const { robots: allAccessibleRobots } = await getAccessibleData();
+  const { zones, robots: allAccessibleRobots } = await getAccessibleData();
 
   const selectedRobotIds = params.robots?.split(',').filter(Boolean) || [];
-  
-  // 1. Resolve date range (default to last 7 days)
+  const selectedZoneId = params.zone;
+
+  // 1. Determine target robots based on zone filter
+  let robotsInScope = allAccessibleRobots;
+  if (selectedZoneId && selectedZoneId !== 'all') {
+    robotsInScope = allAccessibleRobots.filter(r => r.locationId === selectedZoneId);
+  }
+
+  // 2. Resolve date range (default to last 7 days)
   const to = params.to ? new Date(params.to) : new Date();
   const from = params.from ? new Date(params.from) : new Date();
   if (!params.from) {
     from.setDate(to.getDate() - 7);
   }
-  
+
   // Set time for inclusive range
   from.setHours(0, 0, 0, 0);
   to.setHours(23, 59, 59, 999);
 
-  // 2. Fetch REAL watering data from Prisma
+  // 3. Fetch REAL watering data from Prisma
   const wateringLogs = await prisma.wateringLog.findMany({
     where: {
       robotId: {
         in: selectedRobotIds.length > 0 
           ? selectedRobotIds 
-          : allAccessibleRobots.map(r => r.id)
+          : robotsInScope.map(r => r.id)
       },
       createdAt: {
         gte: from,
@@ -127,13 +134,13 @@ export default async function AnalyticsPage({ searchParams }: Props) {
               <Filter className="w-4 h-4 text-[#0E6633]" /> Analytics Filters
             </h3>
             <div className="space-y-6">
-              <AnalyticsFilters robots={allAccessibleRobots} />
+              <AnalyticsFilters zones={zones} robots={allAccessibleRobots} />
               
               <div className="p-4 bg-gray-50 rounded-xl">
                 <p className="text-[10px] font-bold text-[#757575] uppercase tracking-widest mb-2">Selection Info</p>
                 <p className="text-xs text-[#1e1e1e] font-medium leading-relaxed">
                   {selectedRobotIds.length === 0 
-                    ? `Showing data for all ${allAccessibleRobots.length} robots in your accessible zones.` 
+                    ? `Showing data for all ${robotsInScope.length} robots in the current selection.` 
                     : `Analyzing performance for ${selectedRobotIds.length} selected robot(s).`}
                 </p>
               </div>

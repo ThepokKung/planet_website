@@ -13,6 +13,7 @@ model User {
   role         String?    @default("ADMIN") // SUPER ADMIN, ADMIN
   createdAt    DateTime?  @default(now()) @map("created_at")
   locations    Location[]
+  robotLogs    RobotLog[]
 
   @@map("users")
 }
@@ -104,10 +105,12 @@ model WateringLog {
 model RobotLog {
   id        String    @id @default(uuid()) @map("log_id")
   robotId   String?   @map("robot_id")
+  userId    String?   @map("user_id")
   state     String?
   message   String?
   createdAt DateTime? @default(now()) @map("created_at")
   robot     Robot?    @relation(fields: [robotId], references: [id])
+  user      User?     @relation(fields: [userId], references: [id])
 
   @@map("robot_logs")
 }

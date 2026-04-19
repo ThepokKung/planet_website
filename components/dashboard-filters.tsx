@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Bot, MapPin, FilterX } from "lucide-react";
 
 interface DashboardFiltersProps {
@@ -12,9 +12,15 @@ interface DashboardFiltersProps {
 export function DashboardFilters({ zones, robots, showZoneFilter }: DashboardFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   const currentZone = searchParams.get("zone") || "all";
   const currentRobot = searchParams.get("robot") || "all";
+
+  // Filter the robot list based on the selected zone
+  const filteredRobotsList = currentZone === "all" 
+    ? robots 
+    : robots.filter(r => (r as any).locationId === currentZone);
 
   const updateFilters = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -27,11 +33,11 @@ export function DashboardFilters({ zones, robots, showZoneFilter }: DashboardFil
     if (key === "zone") {
       params.delete("robot");
     }
-    router.push(`/dashboard?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   const clearFilters = () => {
-    router.push("/dashboard");
+    router.push(pathname);
   };
 
   return (
@@ -66,7 +72,7 @@ export function DashboardFilters({ zones, robots, showZoneFilter }: DashboardFil
           className="bg-gray-50 border border-gray-200 text-sm rounded-lg focus:ring-[#0E6633] focus:border-[#0E6633] block w-full p-2 font-medium"
         >
           <option value="all">All Robots</option>
-          {robots.map((robot) => (
+          {filteredRobotsList.map((robot) => (
             <option key={robot.id} value={robot.id}>
               {robot.name || robot.id}
             </option>

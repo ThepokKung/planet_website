@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Users, UserPlus, Trash2, ShieldCheck, Shield, MapPin, Key } from "lucide-react";
 import { deleteUserAction } from "@/actions/users";
 import { UserForm } from "@/components/user-form";
+import { UserZoneBadge } from "@/components/user-zone-badge";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -27,8 +28,22 @@ export default async function UserManagementPage() {
     orderBy: { createdAt: 'desc' }
   });
 
-  const zones = await prisma.location.findMany({
-    orderBy: { spotName: 'asc' }
+  const allZones = await prisma.location.findMany();
+  
+  // Natural Sort Logic: Handle S1, S2, S10 correctly
+  const zones = allZones.sort((a, b) => {
+    const extract = (s: string | null) => {
+      if (!s) return { prefix: '', num: 0 };
+      const match = s.match(/([A-Z]+)(\d+)/);
+      return match ? { prefix: match[1], num: parseInt(match[2], 10) } : { prefix: s, num: 0 };
+    };
+    
+    const valA = extract(a.fullCode);
+    const valB = extract(b.fullCode);
+    
+    // Sort by Prefix (North/South) then by Number
+    if (valA.prefix !== valB.prefix) return valA.prefix.localeCompare(valB.prefix);
+    return valA.num - valB.num;
   });
 
   return (
@@ -98,15 +113,7 @@ export default async function UserManagementPage() {
                         {u.role === 'SUPER ADMIN' ? (
                           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">All Zones Permitted</span>
                         ) : (
-                          <div className="flex flex-wrap gap-1 max-w-[200px]">
-                            {u.locations.length > 0 ? u.locations.map(loc => (
-                              <span key={loc.id} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-50 text-[#757575] border border-gray-100 rounded text-[9px] font-bold">
-                                <MapPin className="w-2.5 h-2.5" /> {loc.spotName || loc.fullCode}
-                              </span>
-                            )) : (
-                              <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest italic">No Zones Assigned</span>
-                            )}
-                          </div>
+                          <UserZoneBadge locations={u.locations} username={u.username} />
                         )}
                       </td>
                       <td className="px-8 py-6 text-right">
