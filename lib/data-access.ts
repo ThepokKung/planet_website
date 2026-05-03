@@ -13,8 +13,12 @@ function naturalSortZones(zones: any[]) {
 export async function getAccessibleData() {
   const session = await getSession();
   
-  // If no session OR Super Admin, fetch all data
-  if (!session || session.role === 'SUPER ADMIN') {
+  if (!session) {
+    return { role: null, zones: [], robots: [] };
+  }
+  
+  // If Super Admin, fetch all data
+  if (session.role === 'SUPER ADMIN') {
     const rawZones = await prisma.location.findMany({
       select: {
         id: true,

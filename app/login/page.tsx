@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { loginAction } from "@/actions/auth";
-import { Leaf, Lock, User, Loader2, LayoutDashboard } from "lucide-react";
-import Link from "next/link";
+import { Leaf, Lock, User, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -135,14 +134,6 @@ export default function LoginPage() {
             >
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign in"}
             </button>
-
-            <Link
-              href="/dashboard"
-              className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-200 rounded-md text-sm font-bold text-gray-600 bg-white hover:bg-gray-50 transition-all active:scale-[0.98]"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              Return to Dashboard
-            </Link>
           </div>
         </form>
 

@@ -66,3 +66,45 @@ export async function deleteUserAction(userId: string) {
     throw new Error("Failed to delete user.");
   }
 }
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(6),
+});
+
+export async function updatePasswordAction(data: any) {
+  const session = await getSession();
+  if (!session) {
+    throw new Error("Unauthorized.");
+  }
+
+  const result = changePasswordSchema.safeParse(data);
+  if (!result.success) {
+    throw new Error("Invalid input data.");
+  }
+
+  const { currentPassword, newPassword } = result.data;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId }
+    });
+
+    if (!user) throw new Error("User not found.");
+
+    const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isMatch) {
+      return { error: "Current password is incorrect." };
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: session.userId },
+      data: { passwordHash: newPasswordHash }
+    });
+
+    return { success: true };
+  } catch (error) {
+    return { error: "Failed to update password." };
+  }
+}

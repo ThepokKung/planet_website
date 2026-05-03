@@ -14,7 +14,7 @@ interface PlantTemplateItem {
 
 export default async function PlantMasterPage() {
   const session = await getSession();
-  if (!session || session.role !== 'SUPER ADMIN') {
+  if (!session || (session.role !== 'SUPER ADMIN' && session.role !== 'ADMIN')) {
     redirect("/dashboard");
   }
   const plantTemplate = (prisma as any).plantTemplate;

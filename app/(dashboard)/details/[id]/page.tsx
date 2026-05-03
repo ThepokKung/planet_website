@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { RobotHistoryLogs } from "@/components/robot-history-logs";
+import { RobotCommandButton } from "@/components/robot-command-button";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -140,6 +141,8 @@ export default async function RobotDetailsPage({ params }: PageProps) {
               </div>
             </div>
           </div>
+
+          <RobotCommandButton />
 
           {/* Robot Logs Section (Client Side Pagination) */}
           <RobotHistoryLogs 

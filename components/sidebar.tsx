@@ -34,14 +34,15 @@ export function Sidebar({ role }: { role?: string }) {
     { name: "Analytics", href: "/analytics", icon: BarChart3 },
     { name: "Plants", href: "/plants", icon: Leaf },
     { name: "System Logs", href: "/system-logs", icon: History },
+    { name: "Settings", href: "/settings", icon: Settings },
   ];
 
   const adminItems = [
     { name: "Setup Robot", href: "/setup", icon: Zap },
+    { name: "Plant Master", href: "/plant-master", icon: Leaf },
   ];
 
   const superAdminItems = [
-    { name: "Plant Master", href: "/plant-master", icon: Leaf },
     { name: "User Management", href: "/users", icon: Users },
   ];
 

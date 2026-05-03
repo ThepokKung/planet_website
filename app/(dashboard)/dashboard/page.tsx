@@ -78,7 +78,6 @@ export default async function Dashboard({
     { name: "Active Bots", value: robots.length, icon: Bot, status: "Connected", color: "text-[#0E6633]" },
     { name: "Total Pots", value: totalPots, icon: Flower2, status: `In use`, color: "text-[#0E6633]" },
     { name: "Total Plants", value: totalPlants, icon: Leaf, status: "Healthy & Active", color: "text-[#22a042]" },
-    { name: "Watering Today", value: totalLogsToday, icon: Droplets, status: "Completed events", color: "text-blue-600" },
   ];
 
   return (
@@ -104,7 +103,7 @@ export default async function Dashboard({
       />
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {stats.map((stat) => (
           <div key={stat.name} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
