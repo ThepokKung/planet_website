@@ -32,6 +32,7 @@ export function Sidebar({ role }: { role?: string }) {
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Analytics", href: "/analytics", icon: BarChart3 },
+    { name: "Plants", href: "/plants", icon: Leaf },
     { name: "System Logs", href: "/system-logs", icon: History },
   ];
 

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { AnalyticsCharts } from "@/components/analytics-charts";
 import { DateRangePicker } from "@/components/date-range-picker";
+import { TimeRangeDropdown } from "@/components/time-range-dropdown";
 import { 
   BarChart3, 
   Download,
@@ -120,6 +121,7 @@ export default async function AnalyticsPage({ searchParams }: Props) {
           <p className="text-[#757575] mt-1">Real-time hydration intelligence and resource metrics</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <TimeRangeDropdown />
           <DateRangePicker />
           <button className="flex items-center gap-2 px-4 py-2 bg-[#0E6633] text-white rounded-xl text-sm font-bold hover:bg-[#0c592b] transition-all shadow-md shadow-[#0E6633]/20">
             <Download className="w-4 h-4" /> Export CSV

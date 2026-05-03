@@ -170,8 +170,8 @@ export function AnalyticsCharts({ data }: { data: AnalyticsData }) {
 
       <div className="bg-white/60 backdrop-blur-sm border border-gray-100 rounded-2xl p-4 flex items-center justify-center gap-3 shadow-sm mt-8">
         <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
-        <p className="text-[11px] font-bold text-[#757575] uppercase tracking-widest">
-          ค่า ML ที่แสดงคือค่าเปรียบเทียบจากการคำนวณ <span className="text-[#0E6633]">(เวลา x Flowrate)</span>
+        <p className="text-[11px] font-bold text-[#757575] tracking-widest text-center">
+          ค่า ml ที่แสดงคือค่าเปรียบเทียบจากการคำนวณ <span className="text-[#0E6633]">(เวลา x Flowrate)</span>
         </p>
       </div>
     </div>

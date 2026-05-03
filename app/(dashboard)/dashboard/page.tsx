@@ -5,7 +5,6 @@ import {
   Flower2, 
   Leaf, 
   Droplets,
-  Radio,
   Clock,
   ArrowUpRight,
   ExternalLink,
@@ -142,6 +141,7 @@ export default async function Dashboard({
                 <th className="px-6 py-4">Robot / ID</th>
                 <th className="px-6 py-4">Zone</th>
                 <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Fleet Composition</th>
                 <th className="px-6 py-4 text-center">Battery</th>
                 <th className="px-6 py-4">Task</th>
                 <th className="px-6 py-4 text-right">Last Sync</th>
@@ -178,6 +178,21 @@ export default async function Dashboard({
                       )}>
                         {robot.status || 'Idle'}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5">
+                          <Flower2 className="w-3.5 h-3.5 text-gray-400" />
+                          <span className="text-xs font-bold text-[#1e1e1e]">{robot.pots.length}</span>
+                        </div>
+                        <div className="w-px h-3 bg-gray-200" />
+                        <div className="flex items-center gap-1.5">
+                          <Leaf className="w-3.5 h-3.5 text-[#22a042]" />
+                          <span className="text-xs font-bold text-[#1e1e1e]">
+                            {robot.pots.reduce((acc, p) => acc + p._count.plants, 0)}
+                          </span>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col items-center gap-1">

@@ -17,6 +17,14 @@ export function DateRangePicker() {
     new Date().toISOString().split("T")[0]
   );
 
+  // Sync state with URL params when they change (e.g. via presets)
+  useEffect(() => {
+    const from = searchParams.get("from");
+    const to = searchParams.get("to");
+    if (from) setFromDate(from);
+    if (to) setToDate(to);
+  }, [searchParams]);
+
   const handleApply = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("from", fromDate);

@@ -12,9 +12,6 @@ import {
   AlertTriangle,
   ChevronRight,
   History,
-  Terminal,
-  ChevronLeft,
-  ChevronRight as ChevronRightIcon
 } from "lucide-react";
 import Link from "next/link";
 import { RobotHistoryLogs } from "@/components/robot-history-logs";
@@ -178,12 +175,27 @@ export default async function RobotDetailsPage({ params }: PageProps) {
                   
                   <div className="space-y-2">
                     {pot.plants.map((plant) => (
-                      <div key={plant.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-50/50">
-                        <div className="flex items-center gap-2">
-                          <Flower2 className="w-3.5 h-3.5 text-[#22a042]" />
-                          <span className="text-xs font-bold text-[#1e1e1e]">{plant.plantName}</span>
+                      <div key={plant.id} className="flex flex-col gap-1 p-3 rounded-xl bg-gray-50/50">
+                        <div className="flex items-center justify-between">
+                          <Link href={`/plants/${plant.id}`} className="flex items-center gap-2 group/plant">
+                            <Flower2 className="w-3.5 h-3.5 text-[#22a042] group-hover/plant:scale-110 transition-transform" />
+                            <span className="text-xs font-bold text-[#1e1e1e] group-hover/plant:text-[#0E6633] transition-colors">{plant.plantName}</span>
+                          </Link>
+                          <span className="text-[10px] font-bold text-[#22a042] uppercase tracking-tighter bg-green-50 px-1.5 py-0.5 rounded">Healthy</span>
                         </div>
-                        <span className="text-[10px] font-bold text-[#22a042] uppercase">Healthy</span>
+                        <div className="flex items-center gap-3 mt-1 pl-5">
+                          <div className="flex items-center gap-1">
+                            <Droplets className="w-3 h-3 text-blue-400" />
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Target:</span>
+                            <span className="text-[10px] font-black text-[#1e1e1e]">{plant.targetMoisturePct}%</span>
+                          </div>
+                          <div className="w-px h-2 bg-gray-200" />
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-gray-400" />
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Limit:</span>
+                            <span className="text-[10px] font-black text-[#1e1e1e]">{plant.maxWaterDurationSec}s</span>
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>

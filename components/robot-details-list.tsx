@@ -7,7 +7,6 @@ import {
   Leaf, 
   ChevronDown, 
   ChevronRight, 
-  Info, 
   Battery, 
   Search, 
   X,
@@ -156,7 +155,12 @@ export function RobotDetailsList({ robots, role }: { robots: Robot[], role?: str
                             )}
                           </div>
                           <div className="flex items-center gap-4">
-                            <span className="text-xs font-mono text-[#757575]">{plant.moisture || 0}% moisture</span>
+                            <div className="flex flex-col items-end">
+                              <span className="text-xs font-mono text-[#757575]">{plant.moisture || 0}% moisture</span>
+                              {plant.targetMoisturePct && (
+                                <span className="text-[9px] font-bold text-[#0E6633] uppercase">Goal: {plant.targetMoisturePct}%</span>
+                              )}
+                            </div>
                             <button className="text-[10px] font-bold text-[#0E6633] hover:underline uppercase">Stats</button>
                           </div>
                         </div>
