@@ -14,6 +14,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { getAccessibleData } from "@/lib/data-access";
 import { DashboardFilters } from "@/components/dashboard-filters";
+import { ZoneBadgeList } from "@/components/zone-badge-list";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -82,16 +83,16 @@ export default async function Dashboard({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-10">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e]">Dashboard Overview</h2>
-          <p className="text-[#757575] mt-1">
-            {role === 'SUPER ADMIN' || !role ? 'Full access monitoring' : `Zone: ${zones.map(z => z.spotName).join(', ')}`}
-          </p>
+          <h2 className="text-3xl font-black tracking-tight text-[#1e1e1e] flex items-center gap-3">
+            Dashboard Overview
+          </h2>
+          <ZoneBadgeList zones={zones} role={role} currentZoneId={zone} />
         </div>
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm flex items-center gap-2">
-            <ArrowUpRight className="w-4 h-4" /> Export Report
+          <button className="px-6 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold hover:bg-gray-50 hover:border-[#0E6633] transition-all shadow-sm flex items-center gap-2 text-[#1e1e1e]">
+            <ArrowUpRight className="w-4 h-4 text-[#0E6633]" /> Export Report
           </button>
         </div>
       </div>
@@ -165,8 +166,8 @@ export default async function Dashboard({
                       </Link>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-1 text-xs text-[#1e1e1e] font-medium">
-                        <MapPin className="w-3 h-3 text-[#757575]" />
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 border border-gray-100 rounded-lg text-xs text-[#1e1e1e] font-bold shadow-sm">
+                        <MapPin className="w-3 h-3 text-[#0E6633]" />
                         {robot.location?.spotName || robot.location?.fullCode || "Unassigned"}
                       </div>
                     </td>

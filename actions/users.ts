@@ -108,3 +108,26 @@ export async function updatePasswordAction(data: any) {
     return { error: "Failed to update password." };
   }
 }
+
+export async function updateUserZonesAction(userId: string, locationIds: string[]) {
+  const session = await getSession();
+  if (session?.role !== "SUPER ADMIN") {
+    throw new Error("Unauthorized. Super Admin access required.");
+  }
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        locations: {
+          set: locationIds.map(id => ({ id }))
+        }
+      }
+    });
+    revalidatePath("/users");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to update user zones:", error);
+    return { error: "Failed to update zones." };
+  }
+}

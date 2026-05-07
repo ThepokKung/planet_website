@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { DashboardFilters } from "@/components/dashboard-filters";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -20,14 +21,27 @@ function cn(...inputs: ClassValue[]) {
 
 export const dynamic = 'force-dynamic';
 
-export default async function PlantsPage() {
-  const { robots: accessibleRobots } = await getAccessibleData();
-  const robotIds = accessibleRobots.map(r => r.id);
+export default async function PlantsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ zone?: string; robot?: string }>;
+}) {
+  const { zone, robot } = await searchParams;
+  const { zones, robots: allAccessibleRobots } = await getAccessibleData();
+
+  // Determine target robot IDs based on filters
+  let targetRobotIds = allAccessibleRobots.map(r => r.id);
+  if (zone && zone !== 'all') {
+    targetRobotIds = allAccessibleRobots.filter(r => r.locationId === zone).map(r => r.id);
+  }
+  if (robot && robot !== 'all') {
+    targetRobotIds = targetRobotIds.filter(id => id === robot);
+  }
 
   const plants = await prisma.plant.findMany({
     where: {
       pot: {
-        robotId: { in: robotIds }
+        robotId: { in: targetRobotIds }
       }
     },
     include: {
@@ -64,6 +78,12 @@ export default async function PlantsPage() {
           />
         </div>
       </div>
+
+      <DashboardFilters 
+        zones={zones} 
+        robots={allAccessibleRobots} 
+        showZoneFilter={true} 
+      />
 
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">

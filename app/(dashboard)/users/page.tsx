@@ -5,6 +5,7 @@ import { Users, UserPlus, Trash2, ShieldCheck, Shield, MapPin, Key } from "lucid
 import { deleteUserAction } from "@/actions/users";
 import { UserForm } from "@/components/user-form";
 import { UserZoneBadge } from "@/components/user-zone-badge";
+import { UserZoneManager } from "@/components/user-zone-manager";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -61,8 +62,8 @@ export default async function UserManagementPage() {
 
         {/* User List */}
         <div className="lg:col-span-8">
-          <div className="bg-white rounded-[32px] border border-gray-100 shadow-xl overflow-hidden">
-            <div className="px-8 py-6 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+          <div className="bg-white rounded-[32px] border border-gray-100 shadow-xl overflow-visible">
+            <div className="px-8 py-6 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between rounded-t-[32px]">
               <h3 className="font-bold text-[#1e1e1e] flex items-center gap-2 uppercase text-[10px] tracking-widest">
                 <Users className="w-4 h-4 text-[#0E6633]" /> Active Personnel
               </h3>
@@ -113,7 +114,12 @@ export default async function UserManagementPage() {
                         {u.role === 'SUPER ADMIN' ? (
                           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">All Zones Permitted</span>
                         ) : (
-                          <UserZoneBadge locations={u.locations} username={u.username} />
+                          <UserZoneManager 
+                            userId={u.id} 
+                            assignedLocations={u.locations} 
+                            allZones={zones} 
+                            username={u.username} 
+                          />
                         )}
                       </td>
                       <td className="px-8 py-6 text-right">
