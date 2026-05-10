@@ -13,7 +13,7 @@ const userSchema = z.object({
   locationIds: z.array(z.string()).optional(),
 });
 
-export async function createUserAction(data: any) {
+export async function createUserAction(data: unknown) {
   const session = await getSession();
   if (session?.role !== "SUPER ADMIN") {
     throw new Error("Unauthorized. Super Admin access required.");
@@ -40,8 +40,8 @@ export async function createUserAction(data: any) {
     });
     revalidatePath("/users");
     return { success: true };
-  } catch (error: any) {
-    if (error.code === 'P2002') {
+  } catch (error) {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') {
       return { error: "Username already exists." };
     }
     return { error: "Failed to create user." };
@@ -62,7 +62,7 @@ export async function deleteUserAction(userId: string) {
     await prisma.user.delete({ where: { id: userId } });
     revalidatePath("/users");
     return { success: true };
-  } catch (error) {
+  } catch {
     throw new Error("Failed to delete user.");
   }
 }
@@ -72,7 +72,7 @@ const changePasswordSchema = z.object({
   newPassword: z.string().min(6),
 });
 
-export async function updatePasswordAction(data: any) {
+export async function updatePasswordAction(data: unknown) {
   const session = await getSession();
   if (!session) {
     throw new Error("Unauthorized.");
@@ -104,7 +104,7 @@ export async function updatePasswordAction(data: any) {
     });
 
     return { success: true };
-  } catch (error) {
+  } catch {
     return { error: "Failed to update password." };
   }
 }

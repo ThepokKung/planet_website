@@ -5,8 +5,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## 1. Project Overview & Architecture
 An Industrial IoT (IIoT) read-only monitoring dashboard for autonomous track-based watering robots. 
-- **Framework:** Next.js (App Router) + TypeScript
-- **Styling:** Tailwind CSS + Recharts (for Analytics)
+- **Framework:** Next.js 16+ (App Router) + TypeScript
+- **Styling:** Tailwind CSS 4+ + Recharts (for Analytics)
 - **Database:** PostgreSQL managed via Prisma ORM
 - **Hardware Interface:** OTA (Over-The-Air) configuration via HTTP Polling or MQTT (Replaced WebSerial).
 - **Core Philosophy:** The robots are fully autonomous. The dashboard is a "Command Center" for monitoring, analytics, and centralized configuration management.
@@ -84,9 +84,11 @@ vertical-forest-dashboard
 │   ├── (dashboard)         # Protected routes (Requires Auth/Admin)
 │   │   ├── analytics       # KPI charts with Robot Dropdown filters
 │   │   ├── dashboard       # Live status cards (Zone-restricted)
-│   │   ├── setup-robot     # Robot configuration (Uses PlantTemplate dropdowns)
-│   │   ├── plant-config    # CRUD page for Plant Master Data
-│   │   ├── user-management # SUPER ADMIN ONLY: Assign roles and zones
+│   │   ├── details         # Robot specific details
+│   │   ├── plants          # Plant inventory and individual logs
+│   │   ├── setup           # Robot & Zone configuration
+│   │   ├── plant-master    # CRUD page for Plant Master Data
+│   │   ├── users           # SUPER ADMIN ONLY: Assign roles and zones
 │   │   └── system-logs     # Data table with colored badges for robot_logs
 │   ├── api                 
 │   │   ├── config          # OTA Endpoint for ESP32 to fetch config
@@ -136,7 +138,7 @@ export default async function FleetPage() {
     const user = await getUserSession();
     
     // RBAC: If normal Admin, lock query to their specific zone
-    const zoneFilter = user.role === 'ADMIN' ? { location_id: user.zone_id } : {};
+    const zoneFilter = user.role === 'ADMIN' ? { locationId: user.zone_id } : {};
 
     const robots = await prisma.robot.findMany({
         where: zoneFilter,

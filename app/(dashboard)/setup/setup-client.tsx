@@ -2,32 +2,26 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
-  Cpu,
   List,
   Zap,
   Plus,
   Trash2,
-  Save,
   CheckCircle,
   AlertCircle,
-  Search,
   Loader2,
   Leaf,
   X,
   Usb,
   Terminal,
   Database,
-  RefreshCw,
-  CloudDownload,
-  MapPin,
   Eye,
   EyeOff,
   Bot
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { saveRobotConfigAction } from "@/actions/robots";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { Location, PlantTemplate } from "@prisma/client";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -44,19 +38,23 @@ interface PotEntry {
 }
 
 interface Props {
-  zones: any[];
-  plantTemplates: any[];
+  zones: (Location & { robots?: { id: string }[] })[];
+  plantTemplates: PlantTemplate[];
+}
+
+// Minimal types for Web Serial since they might be missing in default TS
+interface SerialPort {
+  open(options: { baudRate: number }): Promise<void>;
+  close(): Promise<void>;
+  readable: ReadableStream<Uint8Array> | null;
+  writable: WritableStream<Uint8Array> | null;
 }
 
 export default function SetupClientPage({ zones, plantTemplates }: Props) {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-
   // Form States
   const [robotId, setRobotId] = useState("BOT-001");
   const [robotName, setRobotName] = useState("");
   const [zoneId, setZoneId] = useState("");
-  const [robotIp, setRobotIp] = useState("Not Connected");
   const [pots, setPots] = useState<PotEntry[]>([
     { index: 0, potName: "Pot 0", plants: [{ templateId: "" }] }
   ]);
@@ -64,9 +62,9 @@ export default function SetupClientPage({ zones, plantTemplates }: Props) {
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info', msg: string } | null>(null);
 
   // Serial Port States
-  const portRef = useRef<any>(null);
-  const writerRef = useRef<any>(null);
-  const readerRef = useRef<any>(null);
+  const portRef = useRef<SerialPort | null>(null);
+  const writerRef = useRef<WritableStreamDefaultWriter<string> | null>(null);
+  const readerRef = useRef<ReadableStreamDefaultReader<string> | null>(null);
   const [serialStatus, setSerialStatus] = useState<string>("Waiting for USB connection...");
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -75,7 +73,7 @@ export default function SetupClientPage({ zones, plantTemplates }: Props) {
 
   // Memoize plant template lookup map for O(1) access
   const templateMap = useMemo(() => {
-    const map: Record<string, any> = {};
+    const map: Record<string, PlantTemplate> = {};
     plantTemplates.forEach(t => { map[t.id] = t; });
     return map;
   }, [plantTemplates]);
@@ -120,38 +118,48 @@ export default function SetupClientPage({ zones, plantTemplates }: Props) {
       version: "1.2.1",
       timestamp: new Date().toISOString()
     };
-  }, [robotId, robotName, zoneId, pots, templateMap]);
+  }, [robotId, robotName, zoneId, pots, templateMap, zones]);
 
   useEffect(() => {
-    return () => {
-      if (portRef.current) disconnectUsb();
+    const cleanup = () => {
+      if (portRef.current) {
+        disconnectUsb().catch(console.error);
+      }
     };
+    return cleanup;
   }, []);
 
   // --- USB Logic ---
   const connectUsb = async () => {
     setIsConnecting(true);
     try {
-      const port = await (navigator as any).serial.requestPort();
+      const nav = navigator as unknown as { serial: { requestPort: () => Promise<SerialPort> } };
+      if (!nav.serial) {
+        throw new Error("Web Serial API not supported in this browser.");
+      }
+      const port = await nav.serial.requestPort();
       await port.open({ baudRate: 115200 });
       portRef.current = port;
+      
       const encoder = new TextEncoderStream();
-      encoder.readable.pipeTo(port.writable);
+      encoder.readable.pipeTo(port.writable!);
       writerRef.current = encoder.writable.getWriter();
+      
       const decoder = new TextDecoderStream();
-      port.readable.pipeTo(decoder.writable);
+      port.readable!.pipeTo(decoder.writable);
       const reader = decoder.readable.getReader();
       readerRef.current = reader;
+      
       setIsConnected(true);
       setSerialStatus("USB Connected! ESP32 Ready.");
       setStatus({ type: 'success', msg: 'Hardware Link Established' });
       readLoop(reader);
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
       setIsConnected(false);
       setStatus({ 
         type: 'error', 
-        msg: error.message || 'Failed to connect. Make sure your browser supports Web Serial.' 
+        msg: error instanceof Error ? error.message : 'Failed to connect. Make sure your browser supports Web Serial.' 
       });
     } finally {
       setIsConnecting(false);
@@ -165,29 +173,28 @@ export default function SetupClientPage({ zones, plantTemplates }: Props) {
       if (portRef.current) { await portRef.current.close(); }
       setIsConnected(false);
       setSerialStatus("USB Disconnected.");
-    } catch (e) { console.error(e); setIsConnected(false); }
+    } catch { setIsConnected(false); }
   };
 
-  const readLoop = async (reader: any) => {
+  const readLoop = async (reader: ReadableStreamDefaultReader<string>) => {
     let buffer = "";
     try {
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
         buffer += value;
-        let lines = buffer.split('\n');
+        const lines = buffer.split('\n');
         buffer = lines.pop() || "";
-        for (let line of lines) { if (line.trim().startsWith('{')) processESP32Message(line.trim()); }
+        for (const line of lines) { if (line.trim().startsWith('{')) processESP32Message(line.trim()); }
       }
-    } catch (e) { setIsConnected(false); }
+    } catch { setIsConnected(false); }
   };
 
   const processESP32Message = (line: string) => {
     try {
       const data = JSON.parse(line);
-      if (data.ip) setRobotIp(data.ip);
       if (data.type === "success") setStatus({ type: 'success', msg: data.msg });
-    } catch (e) {}
+    } catch { }
   };
 
   const uploadViaUsb = async () => {
@@ -197,7 +204,7 @@ export default function SetupClientPage({ zones, plantTemplates }: Props) {
       const payload = JSON.stringify(mappedConfig) + "\n";
       await writerRef.current.write(payload);
       setStatus({ type: 'success', msg: 'Configuration Synced to Hardware!' });
-    } catch (e) {
+    } catch {
       setStatus({ type: 'error', msg: 'USB Sync Failed' });
     } finally {
       setIsUploading(false);

@@ -1,8 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { Location, Robot } from "@prisma/client";
 
 // Helper for natural sorting (N1, N2... N10, N20)
-function naturalSortZones(zones: any[]) {
+interface ZoneWithRobots extends Partial<Location> {
+  id: string;
+  fullCode: string | null;
+  robots?: { id: string }[];
+}
+
+function naturalSortZones<T extends { fullCode: string | null }>(zones: T[]): T[] {
   return [...zones].sort((a, b) => {
     const codeA = a.fullCode || "";
     const codeB = b.fullCode || "";
@@ -14,7 +21,7 @@ export async function getAccessibleData() {
   const session = await getSession();
   
   if (!session) {
-    return { role: null, zones: [], robots: [] };
+    return { role: null, zones: [] as ZoneWithRobots[], robots: [] as Partial<Robot>[] };
   }
   
   // If Super Admin, fetch all data
@@ -40,7 +47,7 @@ export async function getAccessibleData() {
         locationId: true,
       }
     });
-    return { role: session?.role || null, zones, robots };
+    return { role: session.role, zones, robots };
   }
 
   const { role, userId } = session;
@@ -69,7 +76,7 @@ export async function getAccessibleData() {
 
   const rawZones = user?.locations || [];
   const zones = naturalSortZones(rawZones);
-  const robots = zones.flatMap(z => z.robots);
+  const robots = zones.flatMap(z => (z as ZoneWithRobots).robots || []) as Partial<Robot>[];
   
   return { role, zones, robots };
 }

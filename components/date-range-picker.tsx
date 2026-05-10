@@ -2,28 +2,34 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Calendar, Filter } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
+// Default to last 7 days. Calculated once at module load to maintain purity during render.
+const DEFAULT_FROM = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+const DEFAULT_TO = new Date().toISOString().split("T")[0];
 
 export function DateRangePicker() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [fromDate, setFromDate] = useState(
-    searchParams.get("from") || 
-    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
-  );
-  const [toDate, setToDate] = useState(
-    searchParams.get("to") || 
-    new Date().toISOString().split("T")[0]
-  );
+  const urlFrom = searchParams.get("from");
+  const urlTo = searchParams.get("to");
 
-  // Sync state with URL params when they change (e.g. via presets)
-  useEffect(() => {
-    const from = searchParams.get("from");
-    const to = searchParams.get("to");
-    if (from) setFromDate(from);
-    if (to) setToDate(to);
-  }, [searchParams]);
+  const [fromDate, setFromDate] = useState(urlFrom || DEFAULT_FROM);
+  const [toDate, setToDate] = useState(urlTo || DEFAULT_TO);
+
+  // Sync state with URL params when they change (e.g. via presets or back navigation)
+  const [prevUrlFrom, setPrevUrlFrom] = useState(urlFrom);
+  const [prevUrlTo, setPrevUrlTo] = useState(urlTo);
+
+  if (urlFrom !== prevUrlFrom) {
+    setFromDate(urlFrom || DEFAULT_FROM);
+    setPrevUrlFrom(urlFrom);
+  }
+  if (urlTo !== prevUrlTo) {
+    setToDate(urlTo || DEFAULT_TO);
+    setPrevUrlTo(urlTo);
+  }
 
   const handleApply = () => {
     const params = new URLSearchParams(searchParams.toString());

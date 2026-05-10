@@ -9,6 +9,9 @@ const saveRobotSchema = z.object({
   robot_id: z.string(),
   robot_name: z.string(),
   locationId: z.string(),
+  plant_config: z.record(z.object({
+    targetMoisturePct: z.number()
+  })).optional(),
   pots: z.array(z.object({
     index: z.number(),
     potName: z.string(),
@@ -19,7 +22,7 @@ const saveRobotSchema = z.object({
   }))
 });
 
-export async function saveRobotConfigAction(data: any) {
+export async function saveRobotConfigAction(data: unknown) {
   const session = await getSession();
   if (!session) throw new Error("Unauthorized");
 
@@ -28,7 +31,7 @@ export async function saveRobotConfigAction(data: any) {
     return { success: false, error: result.error.message };
   }
 
-  const { robot_id, robot_name, locationId, pots } = result.data;
+  const { robot_id, robot_name, locationId, pots, plant_config } = result.data;
 
   try {
     // Resolve location ID: Handle 'Unassigned', short codes (e.g., 'S12'), or raw UUIDs
@@ -82,12 +85,16 @@ export async function saveRobotConfigAction(data: any) {
       });
 
       for (let i = 0; i < potData.plants.length; i++) {
+        const plantType = potData.plants[i].type;
+        // Prioritize targetMoisturePct from plant_config if available
+        const targetMoisture = plant_config?.[plantType]?.targetMoisturePct ?? potData.plants[i].targetMoisturePct;
+
         await prisma.plant.create({
           data: {
             potId: pot.id,
             plantIndex: i,
-            plantName: potData.plants[i].type,
-            targetMoisturePct: potData.plants[i].targetMoisturePct,
+            plantName: plantType,
+            targetMoisturePct: targetMoisture,
           }
         });
         plantCount++;
@@ -107,9 +114,9 @@ export async function saveRobotConfigAction(data: any) {
     revalidatePath("/dashboard");
     revalidatePath("/setup");
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Save config error:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : "An unknown error occurred" };
   }
 }
 

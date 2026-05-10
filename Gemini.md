@@ -4,11 +4,11 @@
 This project is an Industrial IoT (IIoT) read-only monitoring dashboard for autonomous track-based watering robots. It acts as a "Command Center" for monitoring, analytics, and centralized configuration management. The robots themselves are fully autonomous.
 
 ### Tech Stack
-*   **Framework:** Next.js 15+ (App Router)
+*   **Framework:** Next.js 16+ (App Router)
 *   **Language:** TypeScript
 *   **Database:** PostgreSQL
 *   **ORM:** Prisma
-*   **Styling:** Tailwind CSS
+*   **Styling:** Tailwind CSS 4+
 *   **Charts:** Recharts
 *   **Icons:** Lucide React
 *   **Auth:** Custom JWT (jose)
@@ -60,7 +60,7 @@ This project is an Industrial IoT (IIoT) read-only monitoring dashboard for auto
 ## Directory Structure
 *   `actions/`: Server Actions for database mutations.
 *   `app/`: Next.js App Router (Pages & API).
-    *   `app/(dashboard)/`: Protected Dashboard Routes (`/dashboard`, `/analytics`, `/plants`, `/details`, etc.).
+    *   `app/(dashboard)/`: Protected Dashboard Routes (`/dashboard`, `/analytics`, `/plant-master`, `/plants`, `/details`, etc.).
     *   `app/api/`: IoT Endpoints (`/api/config`, `/api/logs`).
     *   `app/login/`: Public Authentication page.
 *   `components/`: Reusable UI & Client Components.

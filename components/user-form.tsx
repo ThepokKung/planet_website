@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { UserPlus, MapPin, Shield, ShieldCheck, X } from "lucide-react";
+import { UserPlus, Shield, ShieldCheck } from "lucide-react";
 import { createUserAction } from "@/actions/users";
+import { Location } from "@prisma/client";
 
-export function UserForm({ zones }: { zones: any[] }) {
+export function UserForm({ zones }: { zones: Location[] }) {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -21,8 +22,8 @@ export function UserForm({ zones }: { zones: any[] }) {
     try {
       await createUserAction(formData);
       setFormData({ username: "", password: "", role: "ADMIN", locationIds: [] });
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
     } finally {
       setLoading(false);
     }

@@ -9,23 +9,23 @@ const plantTemplateSchema = z.object({
   targetMoisturePct: z.number().min(0).max(100),
 });
 
-export async function createPlantTemplate(data: any) {
+type PlantTemplateInput = z.infer<typeof plantTemplateSchema>;
+
+export async function createPlantTemplate(data: PlantTemplateInput) {
   const result = plantTemplateSchema.safeParse(data);
   if (!result.success) throw new Error("Invalid data");
-  const plantTemplate = (prisma as any).plantTemplate;
 
-  await plantTemplate.create({
+  await prisma.plantTemplate.create({
     data: result.data
   });
   revalidatePath("/plant-master");
 }
 
-export async function updatePlantTemplate(id: string, data: any) {
+export async function updatePlantTemplate(id: string, data: PlantTemplateInput) {
   const result = plantTemplateSchema.safeParse(data);
   if (!result.success) throw new Error("Invalid data");
-  const plantTemplate = (prisma as any).plantTemplate;
 
-  await plantTemplate.update({
+  await prisma.plantTemplate.update({
     where: { id },
     data: result.data
   });
@@ -33,9 +33,7 @@ export async function updatePlantTemplate(id: string, data: any) {
 }
 
 export async function deletePlantTemplate(id: string) {
-  const plantTemplate = (prisma as any).plantTemplate;
-
-  await plantTemplate.delete({
+  await prisma.plantTemplate.delete({
     where: { id }
   });
   revalidatePath("/plant-master");

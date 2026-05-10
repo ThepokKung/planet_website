@@ -1,11 +1,11 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Bot, MapPin, FilterX } from "lucide-react";
+import { MapPin, FilterX } from "lucide-react";
 
 interface DashboardFiltersProps {
   zones: { id: string; spotName: string | null; fullCode: string | null }[];
-  robots: { id: string; name: string | null }[];
+  robots: { id: string; name: string | null; locationId: string | null }[];
   showZoneFilter: boolean;
 }
 
@@ -20,7 +20,7 @@ export function DashboardFilters({ zones, robots, showZoneFilter }: DashboardFil
   // Filter the robot list based on the selected zone
   const filteredRobotsList = currentZone === "all" 
     ? robots 
-    : robots.filter(r => (r as any).locationId === currentZone);
+    : robots.filter(r => r.locationId === currentZone);
 
   const updateFilters = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());

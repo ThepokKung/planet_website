@@ -26,14 +26,28 @@ async function main() {
   await prisma.robot.deleteMany();
   await prisma.location.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.plantTemplate.deleteMany();
 
   console.log('--- 🏗️  Vertical Forest Seed: Creating Base Infrastructure ---');
+
+  // 1.5 Setup Plant Templates
+  const templates = [
+    { name: 'Basil (โหระพา)', targetMoisturePct: 60 },
+    { name: 'Peppermint (สะระแหน่)', targetMoisturePct: 70 },
+    { name: 'Cactus (กระบองเพชร)', targetMoisturePct: 20 },
+    { name: 'Aloe Vera (ว่านหางจระเข้)', targetMoisturePct: 30 },
+    { name: 'Rosemary (โรสแมรี่)', targetMoisturePct: 40 },
+  ];
+
+  for (const t of templates) {
+    await prisma.plantTemplate.create({ data: t });
+  }
 
   // 2. Setup Base Data
   const hashedAdminPassword = await bcrypt.hash('admin123', 10);
   const hashedSuperAdminPassword = await bcrypt.hash('superadmin123', 10);
 
-  const superAdmin = await prisma.user.create({
+  await prisma.user.create({
     data: {
       username: 'superadmin',
       passwordHash: hashedSuperAdminPassword,

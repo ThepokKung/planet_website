@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { Plus, Edit2, X, Leaf, Thermometer } from "lucide-react";
 import { createPlantTemplate, updatePlantTemplate, deletePlantTemplate } from "@/actions/plant-master";
+import { PlantTemplate } from "@prisma/client";
 
 interface PlantTemplateFormProps {
-  template?: any;
+  template?: PlantTemplate;
   isEdit?: boolean;
 }
 
