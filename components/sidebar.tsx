@@ -4,30 +4,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, 
-  TreePine, 
   Zap, 
   BarChart3, 
   Settings, 
-  Bot,
   Users,
   LogOut,
-  LogIn,
   History,
-  Leaf,
-  MapPin
+  Leaf
 } from "lucide-react";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { cn } from "@/lib/utils";
+import TreeIcon from "./tree-icon";
 import { logoutAction } from "@/actions/auth";
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 export function Sidebar({ role }: { role?: string }) {
   const pathname = usePathname();
   const isSuperAdmin = role === 'SUPER ADMIN';
-  const isAdmin = role === 'ADMIN';
 
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -50,7 +41,7 @@ export function Sidebar({ role }: { role?: string }) {
     <aside className="w-64 bg-[#0E6633] flex flex-col flex-shrink-0">
       <div className="p-6 border-b border-white border-opacity-10 flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-white bg-opacity-20 flex items-center justify-center shadow-inner">
-          <Bot className="w-6 h-6 text-white" />
+          <TreeIcon size={24} color="white" />
         </div>
         <div>
           <span className="font-bold text-sm text-white leading-tight block">

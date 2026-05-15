@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify, JWTPayload } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-const secretKey = "vertical-forest-secret-2026";
+const secretKey = process.env.JWT_SECRET || "vertical-forest-secret-2026";
 const key = new TextEncoder().encode(secretKey);
 
 export interface SessionPayload extends JWTPayload {

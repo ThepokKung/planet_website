@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useFormStatus } from "react-dom";
 import { loginAction } from "@/actions/auth";
-import { Leaf, Lock, User, Loader2 } from "lucide-react";
+import { Lock, User, Loader2 } from "lucide-react";
+import TreeIcon from "@/components/tree-icon";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -34,8 +34,8 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-2xl">
         <div className="text-center">
           <div className="flex justify-center">
-            <div className="bg-[#0E6633] p-3 rounded-full shadow-lg">
-              <Leaf className="h-10 w-10 text-white" />
+            <div className="bg-[#0E6633] p-3 rounded-full shadow-lg text-white">
+              <TreeIcon size={40} color="white" />
             </div>
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">

@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
+  const apiKey = req.headers.get("x-api-key");
+  const expectedApiKey = process.env.IOT_API_KEY || "vertical-forest-iot-secret-2026";
+
+  if (apiKey !== expectedApiKey) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
   const robotId = searchParams.get("robot_id");
 

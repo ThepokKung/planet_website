@@ -78,57 +78,6 @@ export default function SetupClientPage({ zones, plantTemplates }: Props) {
     return map;
   }, [plantTemplates]);
 
-  // Compute JSON payload - Optimized for v1.2.1
-  const mappedConfig = useMemo(() => {
-    const plantConfig: Record<string, { targetMoisturePct: number }> = {};
-    
-    // 1. Build plant_config from selected templates in pots
-    pots.forEach(pot => {
-      pot.plants.forEach(plant => {
-        const template = templateMap[plant.templateId];
-        if (template && !plantConfig[template.name]) {
-          plantConfig[template.name] = {
-            targetMoisturePct: template.targetMoisturePct
-          };
-        }
-      });
-    });
-
-    // 2. Map pots and plants using the config references
-    const selectedZone = zones.find(z => z.id === zoneId);
-    const readableZoneCode = selectedZone?.fullCode || "Unassigned";
-
-    return {
-      robot_id: robotId,
-      robot_name: robotName,
-      locationId: readableZoneCode,
-      plant_config: plantConfig,
-      pots: pots.map((p, pIdx) => ({
-        index: p.index,
-        potName: p.potName,
-        plants: p.plants.map((pl, plIdx) => {
-          const template = templateMap[pl.templateId];
-          const plantType = template?.name || "Unknown";
-          return {
-            id: `p-${pIdx}-${plIdx}`, // Local reference ID
-            type: plantType
-          };
-        })
-      })),
-      version: "1.2.1",
-      timestamp: new Date().toISOString()
-    };
-  }, [robotId, robotName, zoneId, pots, templateMap, zones]);
-
-  useEffect(() => {
-    const cleanup = () => {
-      if (portRef.current) {
-        disconnectUsb().catch(console.error);
-      }
-    };
-    return cleanup;
-  }, []);
-
   // --- USB Logic ---
   const connectUsb = async () => {
     setIsConnecting(true);
@@ -175,6 +124,57 @@ export default function SetupClientPage({ zones, plantTemplates }: Props) {
       setSerialStatus("USB Disconnected.");
     } catch { setIsConnected(false); }
   };
+
+  useEffect(() => {
+    const cleanup = () => {
+      if (portRef.current) {
+        disconnectUsb().catch(console.error);
+      }
+    };
+    return cleanup;
+  }, [disconnectUsb]);
+
+  // Compute JSON payload - Optimized for v1.2.1
+  const mappedConfig = useMemo(() => {
+    const plantConfig: Record<string, { targetMoisturePct: number }> = {};
+    
+    // 1. Build plant_config from selected templates in pots
+    pots.forEach(pot => {
+      pot.plants.forEach(plant => {
+        const template = templateMap[plant.templateId];
+        if (template && !plantConfig[template.name]) {
+          plantConfig[template.name] = {
+            targetMoisturePct: template.targetMoisturePct
+          };
+        }
+      });
+    });
+
+    // 2. Map pots and plants using the config references
+    const selectedZone = zones.find(z => z.id === zoneId);
+    const readableZoneCode = selectedZone?.fullCode || "Unassigned";
+
+    return {
+      robot_id: robotId,
+      robot_name: robotName,
+      locationId: readableZoneCode,
+      plant_config: plantConfig,
+      pots: pots.map((p, pIdx) => ({
+        index: p.index,
+        potName: p.potName,
+        plants: p.plants.map((pl, plIdx) => {
+          const template = templateMap[pl.templateId];
+          const plantType = template?.name || "Unknown";
+          return {
+            id: `p-${pIdx}-${plIdx}`, // Local reference ID
+            type: plantType
+          };
+        })
+      })),
+      version: "1.2.1",
+      timestamp: new Date().toISOString()
+    };
+  }, [robotId, robotName, zoneId, pots, templateMap, zones]);
 
   const readLoop = async (reader: ReadableStreamDefaultReader<string>) => {
     let buffer = "";

@@ -50,6 +50,26 @@ export async function saveRobotConfigAction(data: unknown) {
       }
     }
 
+    // --- RBAC CHECK ---
+    if (session.role === 'ADMIN') {
+      const user = await prisma.user.findUnique({
+        where: { id: session.userId },
+        include: { locations: { select: { id: true } } }
+      });
+      const accessibleZoneIds = user?.locations.map(l => l.id) || [];
+      
+      // 1. Check if trying to move robot to an unauthorized zone
+      if (finalLocationId && !accessibleZoneIds.includes(finalLocationId)) {
+        return { success: false, error: "Unauthorized: You do not have access to this zone." };
+      }
+
+      // 2. Check if the robot itself currently belongs to an authorized zone
+      const robot = await prisma.robot.findUnique({ where: { id: robot_id }, select: { locationId: true } });
+      if (robot?.locationId && !accessibleZoneIds.includes(robot.locationId)) {
+        return { success: false, error: "Unauthorized: This robot belongs to another zone." };
+      }
+    }
+
     // 1. Check if robot exists or create it
     await prisma.robot.upsert({
       where: { id: robot_id },
@@ -66,37 +86,86 @@ export async function saveRobotConfigAction(data: unknown) {
       }
     });
 
-    // 2. Clear existing pots/plants
-    const existingPots = await prisma.pot.findMany({ where: { robotId: robot_id } });
-    const potIds = existingPots.map(p => p.id);
-    
-    await prisma.plant.deleteMany({ where: { potId: { in: potIds } } });
-    await prisma.pot.deleteMany({ where: { robotId: robot_id } });
+    // 2. Fetch existing pots for this robot to perform non-destructive updates
+    const existingPots = await prisma.pot.findMany({ 
+      where: { robotId: robot_id },
+      include: { plants: true }
+    });
 
-    // 3. Create new pots and plants
+    // Strategy: Identify pots to update, create, or delete
+    const incomingTrackIndices = pots.map(p => p.index);
+    const potsToDelete = existingPots.filter(p => p.trackIndex !== null && !incomingTrackIndices.includes(p.trackIndex));
+
+    // Delete removed pots and their plants (this is still destructive but only for REMOVED items)
+    if (potsToDelete.length > 0) {
+      const potIdsToDelete = potsToDelete.map(p => p.id);
+      await prisma.plant.deleteMany({ where: { potId: { in: potIdsToDelete } } });
+      await prisma.pot.deleteMany({ where: { id: { in: potIdsToDelete } } });
+    }
+
     let plantCount = 0;
     for (const potData of pots) {
-      const pot = await prisma.pot.create({
-        data: {
-          robotId: robot_id,
-          trackIndex: potData.index,
-          potName: potData.potName
+      // Find matching existing pot by track index
+      const existingPot = existingPots.find(p => p.trackIndex === potData.index);
+      
+      let potId: string;
+      if (existingPot) {
+        // Update existing pot name if changed
+        await prisma.pot.update({
+          where: { id: existingPot.id },
+          data: { potName: potData.potName }
+        });
+        potId = existingPot.id;
+      } else {
+        // Create new pot
+        const newPot = await prisma.pot.create({
+          data: {
+            robotId: robot_id,
+            trackIndex: potData.index,
+            potName: potData.potName
+          }
+        });
+        potId = newPot.id;
+      }
+
+      // Handle Plants for this pot
+      const existingPlants = existingPot?.plants || [];
+      const incomingPlantIndices = potData.plants.map((_, i) => i);
+
+      // Delete removed plants
+      await prisma.plant.deleteMany({
+        where: { 
+          potId: potId,
+          plantIndex: { notIn: incomingPlantIndices }
         }
       });
 
       for (let i = 0; i < potData.plants.length; i++) {
         const plantType = potData.plants[i].type;
-        // Prioritize targetMoisturePct from plant_config if available
         const targetMoisture = plant_config?.[plantType]?.targetMoisturePct ?? potData.plants[i].targetMoisturePct;
+        
+        const existingPlant = existingPlants.find(p => p.plantIndex === i);
 
-        await prisma.plant.create({
-          data: {
-            potId: pot.id,
-            plantIndex: i,
-            plantName: plantType,
-            targetMoisturePct: targetMoisture,
-          }
-        });
+        if (existingPlant) {
+          // Update existing plant
+          await prisma.plant.update({
+            where: { id: existingPlant.id },
+            data: {
+              plantName: plantType,
+              targetMoisturePct: targetMoisture,
+            }
+          });
+        } else {
+          // Create new plant
+          await prisma.plant.create({
+            data: {
+              potId: potId,
+              plantIndex: i,
+              plantName: plantType,
+              targetMoisturePct: targetMoisture,
+            }
+          });
+        }
         plantCount++;
       }
     }
@@ -107,7 +176,7 @@ export async function saveRobotConfigAction(data: unknown) {
         robot: { connect: { id: robot_id } },
         user: session.userId ? { connect: { id: session.userId } } : undefined,
         state: 'CONFIG_UPDATE',
-        message: `[USER_ACTION] User '${session.username || 'System'}' อัปเดตการตั้งค่า: ${pots.length} กระถาง, ${plantCount} ต้นไม้`
+        message: `[USER_ACTION] User '${session.username || 'System'}' อัปเดตการตั้งค่า: ${pots.length} กระถาง, ${plantCount} ต้นไม้ (Non-destructive update)`
       }
     });
 

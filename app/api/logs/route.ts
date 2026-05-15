@@ -17,6 +17,13 @@ const logSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const apiKey = req.headers.get("x-api-key");
+  const expectedApiKey = process.env.IOT_API_KEY || "vertical-forest-iot-secret-2026";
+
+  if (apiKey !== expectedApiKey) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
     const result = logSchema.safeParse(body);

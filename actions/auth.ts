@@ -55,7 +55,7 @@ export async function loginAction(formData: FormData) {
     (await cookies()).set("session", session, { 
       expires, 
       httpOnly: true,
-      secure: false, // Set to false to allow login over local network HTTP
+      secure: process.env.NODE_ENV === "production",
       sameSite: 'lax',
       path: '/'
     });
