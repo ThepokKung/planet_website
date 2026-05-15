@@ -51,6 +51,7 @@ model Robot {
   currentTrackIndex Int?           @map("current_track_index")
   batteryLevel      Int?           @map("battery_level")
   lastActive        DateTime?      @map("last_active")
+  debugCommand      String?        @map("debug_command")
   location          Location?      @relation(fields: [locationId], references: [id])
   pots              Pot[]
   wateringLogs      WateringLog[]

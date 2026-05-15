@@ -16,6 +16,7 @@ import {
 import Link from "next/link";
 import { RobotHistoryLogs } from "@/components/robot-history-logs";
 import { RobotCommandButton } from "@/components/robot-command-button";
+import { RobotStartTaskButton } from "@/components/robot-start-task-button";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -142,7 +143,8 @@ export default async function RobotDetailsPage({ params }: PageProps) {
             </div>
           </div>
 
-          <RobotCommandButton />
+          <RobotStartTaskButton robotId={robot.id} />
+          <RobotCommandButton robotId={robot.id} pots={robot.pots} />
 
           {/* Robot Logs Section (Client Side Pagination) */}
           <RobotHistoryLogs 

@@ -177,3 +177,44 @@ export async function updatePlantNameAction(plantId: string, newName: string) {
     return { success: false, error: "Failed to update plant name." };
   }
 }
+
+const debugCommandSchema = z.object({
+  robotId: z.string(),
+  command: z.string(),
+});
+
+export async function sendDebugCommandAction(data: unknown) {
+  const session = await getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const result = debugCommandSchema.safeParse(data);
+  if (!result.success) {
+    return { success: false, error: result.error.message };
+  }
+
+  const { robotId, command } = result.data;
+
+  try {
+    await prisma.robot.update({
+      where: { id: robotId },
+      data: { debugCommand: command }
+    });
+
+    // Record Audit Log
+    await prisma.robotLog.create({
+      data: {
+        robotId,
+        userId: session.userId,
+        state: 'DEBUG_COMMAND',
+        message: `[DEBUG_ACTION] User '${session.username}' sent command: ${command}`
+      }
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/details");
+    return { success: true };
+  } catch (error) {
+    console.error("Debug command error:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Failed to send command" };
+  }
+}

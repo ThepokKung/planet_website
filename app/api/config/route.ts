@@ -55,6 +55,7 @@ export async function GET(req: NextRequest) {
       locationId: robot.location?.fullCode || robot.locationId,
       plant_config: plantConfig,
       pots: formattedPots,
+      debugCommand: robot.debugCommand ? JSON.parse(robot.debugCommand) : null,
       version: "1.2.1",
       timestamp: new Date().toISOString()
     });
