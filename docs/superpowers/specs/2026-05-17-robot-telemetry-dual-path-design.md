@@ -6,6 +6,7 @@ The robot detail page must show live telemetry when open, while telemetry ingest
 ## Goals
 - Show latest robot status and state on the robot detail page.
 - Continue ingesting telemetry into the database even when the page is not open.
+- Support multiple simultaneous WebSocket subscribers without overwriting targets.
 - Keep MQTT topic names unchanged.
 - Use `NODE_RED_BASE_URL` for Node-RED WebSocket endpoint.
 
@@ -22,9 +23,9 @@ The solution is dual-path:
 ## Components
 - **Node-RED Flow**
   - WebSocket in: `/ws/telemetry` (subscribe messages from browser).
-  - Function: subscribe handler (parse JSON, set `flow.activeRobotId`).
-  - MQTT in: `vf/robots/+/telemetry` (unchanged).
-  - Function: telemetry filter (match `robot_id` against `flow.activeRobotId`).
+  - Function: subscribe handler (parse JSON, set `flow.wsSubscriptions[sessionId] = robotId`).
+  - MQTT in: use existing topic (currently `plannet-project/+/robot_state`; unchanged).
+  - Function: telemetry filter (match `robot_id` to `flow.wsSubscriptions`, then set `msg._session = { id: sessionId }` to target a specific WebSocket).
   - WebSocket out: `/ws/telemetry` (forward telemetry to browser).
   - HTTP request: POST `/api/node-red/bridge` (always on DB ingestion).
 
@@ -35,12 +36,12 @@ The solution is dual-path:
 ## Data Flow
 - **Subscribe:**
   - Browser sends JSON over WebSocket: `{ "action": "subscribe", "target": "<robot_id>" }`.
-  - Node-RED parses payload and stores `flow.activeRobotId`.
+  - Node-RED parses payload and stores `flow.wsSubscriptions[msg._session.id] = <robot_id>`.
 
 - **Telemetry ingestion:**
   - MQTT telemetry arrives at Node-RED.
   - Node-RED posts to `/api/node-red/bridge` for database update.
-  - Node-RED forwards telemetry to WebSocket if `robot_id` matches `flow.activeRobotId`.
+  - Node-RED forwards telemetry to WebSocket sessions where the mapped robot ID matches the telemetry `robot_id`.
 
 ## Error Handling
 - If WebSocket is disconnected, the UI shows the DB snapshot and the connection state indicates disconnected.
