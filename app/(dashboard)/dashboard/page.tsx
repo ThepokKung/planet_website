@@ -6,7 +6,6 @@ import {
   Leaf, 
   Droplets,
   Clock,
-  ArrowUpRight,
   ExternalLink,
   MapPin
 } from "lucide-react";
@@ -89,11 +88,6 @@ export default async function Dashboard({
             Dashboard Overview
           </h2>
           <ZoneBadgeList zones={zones} role={role} currentZoneId={zone} />
-        </div>
-        <div className="flex gap-2">
-          <button className="px-6 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold hover:bg-gray-50 hover:border-[#0E6633] transition-all shadow-sm flex items-center gap-2 text-[#1e1e1e]">
-            <ArrowUpRight className="w-4 h-4 text-[#0E6633]" /> Export Report
-          </button>
         </div>
       </div>
 

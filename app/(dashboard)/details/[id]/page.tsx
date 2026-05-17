@@ -165,14 +165,14 @@ export default async function RobotDetailsPage({ params }: PageProps) {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {robot.pots.map((pot) => (
-                <div key={pot.id} className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:border-[#0E6633]/20 transition-all group">
+                <div key={pot.id} className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:border-[#0E6633]/20 transition-all group overflow-hidden">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center font-black text-[#0E6633] border border-gray-100 group-hover:bg-[#0E6633] group-hover:text-white transition-all">
                         {pot.trackIndex}
                       </div>
-                      <div>
-                        <h4 className="font-bold text-sm text-[#1e1e1e]">{pot.potName}</h4>
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-sm text-[#1e1e1e] break-words leading-tight">{pot.potName}</h4>
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sector {(pot.trackIndex ?? 0) + 1}</p>
                       </div>
                     </div>
@@ -181,20 +181,20 @@ export default async function RobotDetailsPage({ params }: PageProps) {
                   <div className="space-y-2">
                     {pot.plants.map((plant) => (
                       <div key={plant.id} className="flex flex-col gap-1 p-3 rounded-xl bg-gray-50/50">
-                        <div className="flex items-center justify-between">
-                          <Link href={`/plants/${plant.id}`} className="flex items-center gap-2 group/plant">
+                        <div className="flex items-start justify-between gap-2">
+                          <Link href={`/plants/${plant.id}`} className="flex items-start gap-2 group/plant min-w-0 flex-1">
                             <Flower2 className="w-3.5 h-3.5 text-[#22a042] group-hover/plant:scale-110 transition-transform" />
-                            <span className="text-xs font-bold text-[#1e1e1e] group-hover/plant:text-[#0E6633] transition-colors">{plant.plantName}</span>
+                            <span className="text-xs font-bold text-[#1e1e1e] group-hover/plant:text-[#0E6633] transition-colors whitespace-normal break-words leading-tight">{plant.plantName}</span>
                           </Link>
-                          <span className="text-[10px] font-bold text-[#22a042] uppercase tracking-tighter bg-green-50 px-1.5 py-0.5 rounded">Healthy</span>
+                          <span className="text-[10px] font-bold text-[#22a042] uppercase tracking-tighter bg-green-50 px-1.5 py-0.5 rounded shrink-0">Healthy</span>
                         </div>
-                        <div className="flex items-center gap-3 mt-1 pl-5">
+                        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-1 pl-0 sm:pl-5">
                           <div className="flex items-center gap-1">
                             <Droplets className="w-3 h-3 text-blue-400" />
                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Target:</span>
                             <span className="text-[10px] font-black text-[#1e1e1e]">{plant.targetMoisturePct}%</span>
                           </div>
-                          <div className="w-px h-2 bg-gray-200" />
+                          <div className="hidden sm:block w-px h-2 bg-gray-200" />
                           <div className="flex items-center gap-1">
                             <Clock className="w-3 h-3 text-gray-400" />
                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Limit:</span>

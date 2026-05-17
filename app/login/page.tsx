@@ -34,8 +34,8 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-2xl">
         <div className="text-center">
           <div className="flex justify-center">
-            <div className="bg-[#0E6633] p-3 rounded-full shadow-lg text-white">
-              <TreeIcon size={40} color="white" />
+            <div className="w-14 h-14 rounded-xl bg-white border border-gray-200 flex items-center justify-center shadow-sm text-[#1e1e1e]">
+              <TreeIcon size={34} />
             </div>
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">

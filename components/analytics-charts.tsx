@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef, useState } from 'react';
+
 import { 
   LineChart, 
   Line, 
@@ -8,17 +10,13 @@ import {
   XAxis, 
   YAxis, 
   CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  Legend 
+  Tooltip 
 } from 'recharts';
 import { 
   Droplets, 
   Activity, 
   Thermometer, 
-  ArrowUpRight, 
-  TrendingUp,
-  Calendar
+  TrendingUp
 } from 'lucide-react';
 
 interface AnalyticsData {
@@ -35,6 +33,47 @@ interface AnalyticsData {
     date: string;
     amount: number;
   }[];
+}
+
+function MeasuredChartContainer({
+  children,
+}: {
+  children: (size: { width: number; height: number }) => React.ReactNode;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const update = () => {
+      const { width, height } = el.getBoundingClientRect();
+      const safeWidth = Math.floor(width);
+      const safeHeight = Math.floor(height);
+
+      setSize((prev) => {
+        if (prev.width === safeWidth && prev.height === safeHeight) {
+          return prev;
+        }
+
+        return { width: safeWidth, height: safeHeight };
+      });
+    };
+
+    update();
+
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={containerRef} className="h-[300px] w-full min-w-0">
+      {size.width > 0 && size.height > 0 ? children(size) : null}
+    </div>
+  );
 }
 
 export function AnalyticsCharts({ data }: { data: AnalyticsData }) {
@@ -67,19 +106,19 @@ export function AnalyticsCharts({ data }: { data: AnalyticsData }) {
   return (
     <div className="space-y-8">
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
         {kpis.map((kpi, idx) => (
-          <div key={idx} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold text-[#757575] uppercase tracking-widest">{kpi.label}</span>
-              <div className={`w-10 h-10 rounded-xl ${kpi.bg} flex items-center justify-center`}>
+          <div key={idx} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow min-w-0 overflow-hidden">
+            <div className="flex items-start justify-between gap-2 mb-4 min-w-0">
+              <span className="text-xs font-bold text-[#757575] uppercase tracking-widest leading-tight break-words min-w-0 flex-1">{kpi.label}</span>
+              <div className={`w-10 h-10 rounded-xl ${kpi.bg} flex items-center justify-center shrink-0`}>
                 <kpi.icon className={`w-5 h-5 ${kpi.color}`} />
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-[#1e1e1e]">
+            <div className="text-2xl md:text-3xl font-extrabold text-[#1e1e1e] leading-tight break-words">
               {kpi.value}
             </div>
-            <div className={`text-xs mt-2 font-medium flex items-center gap-1 ${kpi.color}`}>
+            <div className={`text-xs mt-2 font-medium flex items-start gap-1 ${kpi.color}`}>
               <TrendingUp className="w-3 h-3" /> System Analysis
             </div>
           </div>
@@ -95,9 +134,9 @@ export function AnalyticsCharts({ data }: { data: AnalyticsData }) {
             </h3>
             <span className="text-[10px] font-bold text-[#757575] bg-gray-50 px-2 py-1 rounded-full uppercase">Avg %</span>
           </div>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={moistureTrend}>
+          <MeasuredChartContainer>
+            {({ width, height }) => (
+              <LineChart width={width} height={height} data={moistureTrend}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                 <XAxis 
                   dataKey="date" 
@@ -124,8 +163,8 @@ export function AnalyticsCharts({ data }: { data: AnalyticsData }) {
                   activeDot={{ r: 6, strokeWidth: 0 }}
                 />
               </LineChart>
-            </ResponsiveContainer>
-          </div>
+            )}
+          </MeasuredChartContainer>
         </div>
 
         {/* Bar Chart: Water Usage */}
@@ -136,9 +175,9 @@ export function AnalyticsCharts({ data }: { data: AnalyticsData }) {
             </h3>
             <span className="text-[10px] font-bold text-[#757575] bg-gray-50 px-2 py-1 rounded-full uppercase">Total ml</span>
           </div>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={waterUsage}>
+          <MeasuredChartContainer>
+            {({ width, height }) => (
+              <BarChart width={width} height={height} data={waterUsage}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                 <XAxis 
                   dataKey="date" 
@@ -163,8 +202,8 @@ export function AnalyticsCharts({ data }: { data: AnalyticsData }) {
                   barSize={40}
                 />
               </BarChart>
-            </ResponsiveContainer>
-          </div>
+            )}
+          </MeasuredChartContainer>
         </div>
       </div>
 
