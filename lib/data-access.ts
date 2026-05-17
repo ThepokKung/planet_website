@@ -3,10 +3,15 @@ import { getSession } from "@/lib/session";
 import { Location, Robot } from "@prisma/client";
 
 // Helper for natural sorting (N1, N2... N10, N20)
-interface ZoneWithRobots extends Partial<Location> {
+interface ZoneWithRobots {
   id: string;
+  userId: string | null;
+  buildingCode: string | null;
+  floorLevel: string | null;
+  spotName: string | null;
   fullCode: string | null;
-  robots?: { id: string }[];
+  createdAt: Date | null;
+  robots?: { id: string; name: string | null; locationId: string | null }[];
 }
 
 function naturalSortZones<T extends { fullCode: string | null }>(zones: T[]): T[] {
@@ -21,7 +26,7 @@ export async function getAccessibleData() {
   const session = await getSession();
   
   if (!session) {
-    return { role: null, zones: [] as ZoneWithRobots[], robots: [] as Partial<Robot>[] };
+    return { role: null, zones: [] as ZoneWithRobots[], robots: [] as { id: string; name: string | null; locationId: string | null }[] };
   }
   
   // If Super Admin, fetch all data
@@ -29,17 +34,22 @@ export async function getAccessibleData() {
     const rawZones = await prisma.location.findMany({
       select: {
         id: true,
+        userId: true,
+        buildingCode: true,
+        floorLevel: true,
         spotName: true,
         fullCode: true,
-        buildingCode: true,
+        createdAt: true,
         robots: {
           select: {
             id: true,
+            name: true,
+            locationId: true,
           }
         }
       }
     });
-    const zones = naturalSortZones(rawZones);
+    const zones = naturalSortZones(rawZones) as ZoneWithRobots[];
     const robots = await prisma.robot.findMany({
       select: {
         id: true,
@@ -59,9 +69,12 @@ export async function getAccessibleData() {
       locations: {
         select: {
           id: true,
+          userId: true,
+          buildingCode: true,
+          floorLevel: true,
           spotName: true,
           fullCode: true,
-          buildingCode: true,
+          createdAt: true,
           robots: {
             select: {
               id: true,
@@ -74,9 +87,9 @@ export async function getAccessibleData() {
     }
   });
 
-  const rawZones = user?.locations || [];
+  const rawZones = (user?.locations || []) as ZoneWithRobots[];
   const zones = naturalSortZones(rawZones);
-  const robots = zones.flatMap(z => (z as ZoneWithRobots).robots || []) as Partial<Robot>[];
+  const robots = zones.flatMap(z => z.robots || []);
   
   return { role, zones, robots };
 }

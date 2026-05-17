@@ -23,9 +23,9 @@ export function PlantTemplateForm({ template, isEdit }: PlantTemplateFormProps) 
     e.preventDefault();
     setLoading(true);
     try {
-      if (isEdit) {
+      if (isEdit && template) {
         await updatePlantTemplate(template.id, formData);
-      } else {
+      } else if (!isEdit) {
         await createPlantTemplate(formData);
         setFormData({ name: "", targetMoisturePct: 60 });
       }
@@ -39,7 +39,7 @@ export function PlantTemplateForm({ template, isEdit }: PlantTemplateFormProps) 
   };
 
   const handleDelete = async () => {
-    if (confirm("Are you sure you want to delete this template?")) {
+    if (template && confirm("Are you sure you want to delete this template?")) {
       setLoading(true);
       try {
         await deletePlantTemplate(template.id);

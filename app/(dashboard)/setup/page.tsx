@@ -24,11 +24,5 @@ export default async function SetupPage() {
     orderBy: { name: 'asc' }
   });
 
-  const formattedTemplates: PlantTemplateItem[] = plantTemplates.map(t => ({
-    id: t.id,
-    name: t.name,
-    targetMoisturePct: t.targetMoisturePct,
-  }));
-
-  return <SetupClientPage zones={zones} plantTemplates={formattedTemplates} />;
+  return <SetupClientPage zones={zones} plantTemplates={plantTemplates} />;
 }

@@ -9,7 +9,7 @@ const saveRobotSchema = z.object({
   robot_id: z.string(),
   robot_name: z.string(),
   locationId: z.string(),
-  plant_config: z.record(z.object({
+  plant_config: z.record(z.string(), z.object({
     targetMoisturePct: z.number()
   })).optional(),
   pots: z.array(z.object({

@@ -47,7 +47,7 @@ export default async function AnalyticsPage({ searchParams }: Props) {
       robotId: {
         in: selectedRobotIds.length > 0 
           ? selectedRobotIds 
-          : robotsInScope.map(r => r.id)
+          : robotsInScope.map(r => r.id).filter((id): id is string => !!id)
       },
       createdAt: {
         gte: from,
