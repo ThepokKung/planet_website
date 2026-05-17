@@ -27,7 +27,8 @@ The solution is dual-path:
   - MQTT in: use existing topic (currently `plannet-project/+/robot_state`; unchanged).
   - Function: telemetry filter (match `robot_id` to `flow.wsSubscriptions`, then set `msg._session = { id: sessionId }` to target a specific WebSocket).
   - WebSocket out: `/ws/telemetry` (forward telemetry to browser).
-  - HTTP request: POST `/api/node-red/bridge` (always on DB ingestion).
+  - RBE/Change filter: only pass telemetry when key metrics change (avoid DB bloat).
+  - HTTP request: POST `/api/node-red/bridge` (DB ingestion on change).
 
 - **Next.js Robot Detail Page**
   - Server component loads robot snapshot from DB (already in place).
@@ -40,6 +41,7 @@ The solution is dual-path:
 
 - **Telemetry ingestion:**
   - MQTT telemetry arrives at Node-RED.
+  - RBE/Change filter allows only state/metric changes to pass.
   - Node-RED posts to `/api/node-red/bridge` for database update.
   - Node-RED forwards telemetry to WebSocket sessions where the mapped robot ID matches the telemetry `robot_id`.
 
@@ -53,7 +55,8 @@ The solution is dual-path:
 - No new secrets introduced.
 
 ## Testing Plan
-- **DB only:** Close the robot detail page, publish telemetry to MQTT, verify robot row updated in DB.
+- **DB only:** Close the robot detail page, publish telemetry changes to MQTT, verify robot row updated in DB.
+- **DB dedupe:** Publish identical telemetry repeatedly and confirm no new DB updates/logs are created.
 - **Live overlay:** Open robot detail page and confirm WebSocket status shows connected and live fields update.
 - **Filter:** Send telemetry for a different robot and confirm it does not update the current page.
 
