@@ -25,7 +25,9 @@ interface PageProps {
 
 export default async function RobotDetailsPage({ params }: PageProps) {
   const { id } = await params;
-  const nodeRedBaseUrl = process.env.NODE_RED_BASE_URL || "http://localhost:1880";
+  const nodeRedBaseUrl =
+    process.env.NODE_RED_BASE_URL ||
+    (process.env.NODE_ENV === "development" ? "http://localhost:1880" : "");
 
   // 1. Fetch specific robot data with relations
   const robot = await prisma.robot.findUnique({

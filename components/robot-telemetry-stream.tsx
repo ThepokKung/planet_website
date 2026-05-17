@@ -18,13 +18,21 @@ interface RobotTelemetryStreamProps {
   initialTelemetry: TelemetryPayload | null;
 }
 
-function toWebSocketUrl(baseUrl: string) {
-  const url = new URL(baseUrl);
-  url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-  url.pathname = "/ws/telemetry";
-  url.search = "";
-  url.hash = "";
-  return url.toString();
+function toWebSocketUrl(baseUrl: string): string | null {
+  if (!baseUrl.trim()) {
+    return null;
+  }
+
+  try {
+    const url = new URL(baseUrl);
+    url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+    url.pathname = "/ws/telemetry";
+    url.search = "";
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return null;
+  }
 }
 
 export function RobotTelemetryStream({ robotId, nodeRedBaseUrl, initialTelemetry }: RobotTelemetryStreamProps) {
@@ -38,6 +46,11 @@ export function RobotTelemetryStream({ robotId, nodeRedBaseUrl, initialTelemetry
   }, [robotId, initialTelemetry]);
 
   useEffect(() => {
+    if (!websocketUrl) {
+      setConnectionState("disconnected");
+      return;
+    }
+
     let isMounted = true;
     const socket = new WebSocket(websocketUrl);
 
@@ -83,7 +96,7 @@ export function RobotTelemetryStream({ robotId, nodeRedBaseUrl, initialTelemetry
           <h3 className="font-bold text-[#1e1e1e] flex items-center gap-2">
             <Bot className="w-5 h-5 text-[#0E6633]" /> Live Telemetry
           </h3>
-          <p className="text-xs text-[#757575] mt-1">WebSocket: {websocketUrl}</p>
+          <p className="text-xs text-[#757575] mt-1">WebSocket: {websocketUrl ?? "not configured"}</p>
         </div>
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
           {connectionState === "connected" ? (
