@@ -1,160 +1,34 @@
-import 'dotenv/config';
-import { PrismaClient } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
-import bcrypt from 'bcryptjs';
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
 
-if (!process.env.DATABASE_URL) {
-  console.error('❌ Error: DATABASE_URL is not defined in the environment variables.');
-  process.exit(1);
-}
-
-const connectionString = process.env.DATABASE_URL;
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const pool = new Pool({ connectionString });
-  const adapter = new PrismaPg(pool);
-  const prisma = new PrismaClient({ adapter });
+  console.log("🌱 Generating Mock Data for B-N9-001...");
 
-  console.log('--- 🛡️  Vertical Forest Seed: Initializing Wipe ---');
-  
-  // 1. Clean DB
-  await prisma.robotLog.deleteMany();
-  await prisma.wateringLog.deleteMany();
-  await prisma.plant.deleteMany();
-  await prisma.pot.deleteMany();
-  await prisma.robot.deleteMany();
-  await prisma.location.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.plantTemplate.deleteMany();
+  const robotId = "B-N9-001";
 
-  console.log('--- 🏗️  Vertical Forest Seed: Creating Base Infrastructure ---');
+  // Check if robot exists
+  const robot = await prisma.robot.findUnique({
+    where: { id: robotId },
+    include: { pots: { include: { plants: true } } }
+  });
 
-  // 1.5 Setup Plant Templates
-  const templates = [
-    { name: 'Catnip', targetMoisturePct: 50 },
-    { name: 'Devil’s ivy', targetMoisturePct: 60 },
-    { name: 'Snake plant', targetMoisturePct: 30 },
-  ];
-
-  const createdTemplates = [];
-  for (const t of templates) {
-    createdTemplates.push(await prisma.plantTemplate.create({ data: t }));
+  if (!robot) {
+    console.error(`❌ Error: Robot ${robotId} not found in the database. Please create it first.`);
+    return;
   }
 
-  // 2. Setup Base Data
-  const hashedAdminPassword = await bcrypt.hash('admin123', 10);
-  const hashedSuperAdminPassword = await bcrypt.hash('superadmin123', 10);
+  // Clear existing mock logs for this robot
+  await prisma.wateringLog.deleteMany({ where: { robotId } });
+  await prisma.robotLog.deleteMany({ where: { robotId } });
 
-  await prisma.user.create({
-    data: {
-      username: 'superadmin',
-      passwordHash: hashedSuperAdminPassword,
-      role: 'SUPER ADMIN',
-    },
-  });
-
-  const admin = await prisma.user.create({
-    data: {
-      username: 'admin',
-      passwordHash: hashedAdminPassword,
-      role: 'ADMIN',
-    },
-  });
-
-  console.log('--- 🏗️  Vertical Forest Seed: Generating 35 Locations (S1-S15, N1-N20) ---');
-  
-  const locationsData = [
-    ...Array.from({ length: 15 }, (_, i) => ({ code: `S${i + 1}`, building: `S${i + 1}`, name: `South Zone ${i + 1}` })),
-    ...Array.from({ length: 20 }, (_, i) => ({ code: `N${i + 1}`, building: `N${i + 1}`, name: `North Zone ${i + 1}` }))
-  ];
-
-  const createdLocations = [];
-  for (const loc of locationsData) {
-    const newLoc = await prisma.location.create({
-      data: {
-        buildingCode: loc.building,
-        floorLevel: '1',
-        spotName: loc.name,
-        fullCode: loc.code,
-        userId: admin.id,
-      },
-    });
-    createdLocations.push(newLoc);
-  }
-
-  // Use the first location for our demo robot
-  const demoLocation = createdLocations.find(l => l.fullCode === 'N9') || createdLocations[0];
-
-  const robot = await prisma.robot.create({
-    data: {
-      id: `B-N9-001`,
-      name: 'Vertical Forest Alpha',
-      locationId: demoLocation.id,
-      state: 'SLEEP',
-      status: 'Ready',
-      batteryLevel: 98,
-      currentTrackIndex: 0,
-    },
-  });
-
-  // Create Pots
-  const pot0 = await prisma.pot.create({
-    data: {
-      robotId: robot.id,
-      trackIndex: 0,
-      potName: 'Vegetable Box A',
-    },
-  });
-
-  const pot1 = await prisma.pot.create({
-    data: {
-      robotId: robot.id,
-      trackIndex: 1,
-      potName: 'Desert Zone B',
-    },
-  });
-
-  // Create Plants dynamically from templates
-  const createdPlants = [];
-
-  // Assign first 2 templates to pot0 (Catnip, Devil's ivy)
-  for (let i = 0; i < 2; i++) {
-    createdPlants.push(
-      await prisma.plant.create({
-        data: {
-          potId: pot0.id,
-          plantIndex: i,
-          plantName: createdTemplates[i].name,
-          targetMoisturePct: createdTemplates[i].targetMoisturePct,
-          maxWaterDurationSec: 5,
-          flowRateMlPerSec: 10.0,
-        },
-      })
-    );
-  }
-
-  // Assign 3rd template to pot1 (Snake plant)
-  createdPlants.push(
-    await prisma.plant.create({
-      data: {
-        potId: pot1.id,
-        plantIndex: 0,
-        plantName: createdTemplates[2].name,
-        targetMoisturePct: createdTemplates[2].targetMoisturePct,
-        maxWaterDurationSec: 3,
-        flowRateMlPerSec: 5.0,
-      },
-    })
-  );
-
-  console.log('--- 🤖 Vertical Forest Seed: Starting 7-Day Simulation (8-Step Workflow) ---');
+  console.log('--- 🤖 Starting 7-Day Simulation (8-Step Workflow) ---');
 
   const now = new Date();
-  const pots = [
-    { record: pot0, plants: createdPlants.slice(0, 2) },
-    { record: pot1, plants: createdPlants.slice(2, 3) }
-  ];
 
   // Simulation Loop: 7 Days
   for (let d = 6; d >= 0; d--) {
@@ -190,7 +64,7 @@ async function main() {
         data: {
           robotId: robot.id,
           state: 'FETCH_CONFIG',
-          message: `[SYSTEM] เช็ค Config: ${robot.id}, หน้าที่รดน้ำ 2 กระถาง`,
+          message: `[SYSTEM] เช็ค Config: ${robot.id}, หน้าที่รดน้ำ ${robot.pots.length} กระถาง`,
           createdAt: addSeconds(3),
         }
       });
@@ -206,18 +80,18 @@ async function main() {
       });
 
       // Loop through Pots
-      for (const potEntry of pots) {
+      for (const pot of robot.pots) {
         // STEP 4: TRACKING
         await prisma.robotLog.create({
           data: {
             robotId: robot.id,
             state: 'TRACKING',
-            message: `[TRACKING] ตรวจพบ กระถาง Track ${potEntry.record.trackIndex}, กำลังเช็คจำนวน Plant`,
+            message: `[TRACKING] ตรวจพบ กระถาง Track ${pot.trackIndex}, กำลังเช็คจำนวน Plant`,
             createdAt: addSeconds(10),
           }
         });
 
-        for (const plant of potEntry.plants) {
+        for (const plant of pot.plants) {
           // STEP 5: SENSOR
           await prisma.robotLog.create({
             data: {
@@ -298,7 +172,7 @@ async function main() {
           data: {
             robotId: robot.id,
             state: 'MOVING',
-            message: `[SYSTEM] รดน้ำกระถาง Track ${potEntry.record.trackIndex} เสร็จสิ้น เตรียมเคลื่อนที่ต่อ`,
+            message: `[SYSTEM] รดน้ำกระถาง Track ${pot.trackIndex} เสร็จสิ้น เตรียมเคลื่อนที่ต่อ`,
             createdAt: addSeconds(5),
           }
         });
@@ -316,12 +190,17 @@ async function main() {
     }
   }
 
-  console.log('--- ✅ Vertical Forest Seed: Simulation Complete ---');
-  await prisma.$disconnect();
+  console.log("✅ Mock data generation complete!");
 }
 
 main()
-  .catch((e) => {
+  .then(async () => {
+    await prisma.$disconnect();
+    await pool.end();
+  })
+  .catch(async (e) => {
     console.error(e);
+    await prisma.$disconnect();
+    await pool.end();
     process.exit(1);
   });
