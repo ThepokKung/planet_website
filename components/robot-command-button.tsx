@@ -56,7 +56,11 @@ export function RobotCommandButton({ robotId, pots }: Props) {
       });
 
       try {
-        const result = await sendDebugCommandAction({ robotId, command });
+        const result = await sendDebugCommandAction({ 
+          robotId, 
+          command,
+          endpointType: "debug"
+        });
         if (result.success) {
           setStatus({ type: 'success', msg: `${action} Command Sent!` });
         } else {

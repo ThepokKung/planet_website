@@ -270,6 +270,7 @@ export async function updatePlantNameAction(plantId: string, newName: string) {
 const debugCommandSchema = z.object({
   robotId: z.string(),
   command: z.string(),
+  endpointType: z.enum(["cmd", "debug"]).optional().default("debug"),
 });
 
 export async function sendDebugCommandAction(data: unknown) {
@@ -281,7 +282,7 @@ export async function sendDebugCommandAction(data: unknown) {
     return { success: false, error: result.error.message };
   }
 
-  const { robotId, command } = result.data;
+  const { robotId, command, endpointType } = result.data;
 
   try {
     await prisma.robot.update({
@@ -295,9 +296,29 @@ export async function sendDebugCommandAction(data: unknown) {
         robotId,
         userId: session.userId,
         state: 'DEBUG_COMMAND',
-        message: `[DEBUG_ACTION] User '${session.username}' sent command: ${command}`
+        message: `[DEBUG_ACTION] User '${session.username}' sent command: ${command} to ${endpointType}`
       }
     });
+
+    // 1. WEBSITE -> NODE-RED (REST API)
+    const nodeRedBaseUrl = process.env.NODE_RED_BASE_URL;
+    if (nodeRedBaseUrl) {
+      try {
+        const response = await fetch(`${nodeRedBaseUrl}/api/v1/robots/${robotId}/${endpointType}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ command }),
+        });
+        
+        if (!response.ok) {
+          console.error("Node-RED returned status:", response.status);
+        }
+      } catch (err) {
+        console.error("Failed to push command to Node-RED:", err);
+      }
+    }
 
     revalidatePath("/dashboard");
     revalidatePath("/details");

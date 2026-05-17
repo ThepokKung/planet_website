@@ -13,20 +13,35 @@ interface Props {
   robotId: string;
 }
 
+import { sendDebugCommandAction } from "@/actions/robots";
+
 export function RobotStartTaskButton({ robotId }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
 
-  const handleStartTask = () => {
+  const handleStartTask = async () => {
     const confirmed = window.confirm("Initiate full watering cycle for this robot?");
     if (confirmed) {
       setIsSending(true);
-      // In a real scenario, this would call a server action to set a "START_CYCLE" command
-      console.log(`Manual cycle start for ${robotId}`);
-      setTimeout(() => {
+      try {
+        // Send the start trigger command to Node-RED
+        const result = await sendDebugCommandAction({
+          robotId,
+          command: "start_trigger",
+          endpointType: "cmd"
+        });
+
+        if (result.success) {
+          alert("Task command queued. Hardware will begin shortly.");
+        } else {
+          alert("Failed to start task: " + result.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("An unexpected error occurred.");
+      } finally {
         setIsSending(false);
-        alert("Task command queued. Hardware will begin shortly.");
-      }, 1000);
+      }
     }
   };
 
