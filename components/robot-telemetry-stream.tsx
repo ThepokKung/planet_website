@@ -24,7 +24,13 @@ function toWebSocketUrl(baseUrl: string): string | null {
   }
 
   try {
-    const url = new URL(baseUrl);
+    // Normalize host-only values (e.g. "example.com" or "example.com:1880")
+    // by prepending an http scheme so `new URL()` parses them like the backend.
+    let normalized = baseUrl;
+    if (!/^[a-zA-Z][a-zA-Z0-9+\-.]*:\/\//.test(normalized)) {
+      normalized = `http://${normalized}`;
+    }
+    const url = new URL(normalized);
     url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
     url.pathname = "/ws/telemetry";
     url.search = "";
