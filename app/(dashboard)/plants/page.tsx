@@ -96,12 +96,13 @@ export default async function PlantsPage({
                 <th className="px-8 py-5 text-center">Moisture Target</th>
                 <th className="px-8 py-5">Last Hydration</th>
                 <th className="px-8 py-5 text-right">Status</th>
+                <th className="px-8 py-5 text-right"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {plants.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-8 py-20 text-center">
+                  <td colSpan={7} className="px-8 py-20 text-center">
                     <Leaf className="w-12 h-12 text-gray-200 mx-auto mb-4" />
                     <p className="text-gray-400 font-medium">No plants found in your fleet.</p>
                   </td>
@@ -182,6 +183,15 @@ export default async function PlantsPage({
                         )}>
                           {lastLog && lastLog.moistureAfter && lastLog.moistureAfter >= (plant.targetMoisturePct || 0) ? "Optimal" : "Healthy"}
                         </span>
+                      </td>
+                      <td className="px-8 py-5 text-right">
+                        <Link 
+                          href={`/plants/${plant.id}`}
+                          className="inline-flex items-center justify-center gap-1.5 text-xs font-bold bg-white border border-gray-200 text-[#1e1e1e] px-4 py-2 rounded-xl hover:bg-gray-50 hover:border-[#0E6633]/30 hover:text-[#0E6633] transition-all shadow-sm"
+                        >
+                          View
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
                       </td>
                     </tr>
                   );
