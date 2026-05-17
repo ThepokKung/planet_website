@@ -17,6 +17,7 @@ import Link from "next/link";
 import { RobotHistoryLogs } from "@/components/robot-history-logs";
 import { RobotCommandButton } from "@/components/robot-command-button";
 import { RobotStartTaskButton } from "@/components/robot-start-task-button";
+import { RobotTelemetryStream } from "@/components/robot-telemetry-stream";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -24,6 +25,7 @@ interface PageProps {
 
 export default async function RobotDetailsPage({ params }: PageProps) {
   const { id } = await params;
+  const nodeRedBaseUrl = process.env.NODE_RED_BASE_URL || "http://localhost:1880";
 
   // 1. Fetch specific robot data with relations
   const robot = await prisma.robot.findUnique({
@@ -59,6 +61,14 @@ export default async function RobotDetailsPage({ params }: PageProps) {
   ]);
 
   const totalPages = Math.ceil(totalLogs / pageSize);
+
+  const initialTelemetry = {
+    state: robot.state ?? undefined,
+    status: robot.status ?? undefined,
+    battery_level: robot.batteryLevel ?? undefined,
+    current_track_index: robot.currentTrackIndex ?? undefined,
+    last_active: robot.lastActive ? robot.lastActive.toISOString() : undefined,
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
@@ -145,6 +155,11 @@ export default async function RobotDetailsPage({ params }: PageProps) {
 
           <RobotStartTaskButton robotId={robot.id} />
           <RobotCommandButton robotId={robot.id} pots={robot.pots} />
+          <RobotTelemetryStream
+            robotId={robot.id}
+            nodeRedBaseUrl={nodeRedBaseUrl}
+            initialTelemetry={initialTelemetry}
+          />
 
           {/* Robot Logs Section (Client Side Pagination) */}
           <RobotHistoryLogs 
