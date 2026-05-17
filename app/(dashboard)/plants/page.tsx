@@ -15,6 +15,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { DashboardFilters } from "@/components/dashboard-filters";
 import { PageHeader } from "@/components/page-header";
+import { AutoRefresh } from "@/components/auto-refresh";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -76,6 +77,7 @@ export default async function PlantsPage({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+      <AutoRefresh intervalMs={5000} />
       <PageHeader 
         title="Plant Inventory"
         description="Comprehensive list of all plants across your active robot fleet"

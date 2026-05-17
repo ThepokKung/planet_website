@@ -24,6 +24,8 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+import { AutoRefresh } from "@/components/auto-refresh";
+
 export default async function RobotDetailsPage({ params }: PageProps) {
   const { id } = await params;
   const nodeRedBaseUrl =
@@ -75,6 +77,7 @@ export default async function RobotDetailsPage({ params }: PageProps) {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+      <AutoRefresh intervalMs={5000} />
       {/* Breadcrumbs */}
       <div className="flex items-center gap-2 text-xs font-bold text-[#757575] uppercase tracking-widest">
         <Link href="/dashboard" className="hover:text-[#0E6633] transition-colors">Dashboard</Link>

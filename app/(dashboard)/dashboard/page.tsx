@@ -20,6 +20,8 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+import { AutoRefresh } from "@/components/auto-refresh";
+
 export const dynamic = 'force-dynamic';
 
 export default async function Dashboard({
@@ -83,6 +85,7 @@ export default async function Dashboard({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+      <AutoRefresh intervalMs={5000} />
       <PageHeader 
         title="Dashboard Overview"
         description={<ZoneBadgeList zones={zones} role={role} currentZoneId={zone} />}
