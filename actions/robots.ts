@@ -180,6 +180,26 @@ export async function saveRobotConfigAction(data: unknown) {
       }
     });
 
+    // 5. Deploy via OTA (Node-RED)
+    const nodeRedBaseUrl = process.env.NODE_RED_BASE_URL;
+    if (nodeRedBaseUrl) {
+      try {
+        const response = await fetch(`${nodeRedBaseUrl}/api/v1/robots/${robot_id}/config`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response.ok) {
+          console.error("Node-RED returned status:", response.status);
+        }
+      } catch (err) {
+        console.error("Failed to push config to Node-RED:", err);
+      }
+    }
+
     revalidatePath("/dashboard");
     revalidatePath("/setup");
     return { success: true };
