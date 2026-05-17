@@ -73,7 +73,7 @@ export default async function RobotDetailsPage({ params }: PageProps) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       {/* Breadcrumbs */}
       <div className="flex items-center gap-2 text-xs font-bold text-[#757575] uppercase tracking-widest">
         <Link href="/dashboard" className="hover:text-[#0E6633] transition-colors">Dashboard</Link>
@@ -85,7 +85,7 @@ export default async function RobotDetailsPage({ params }: PageProps) {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <h2 className="text-4xl font-black text-[#1e1e1e] tracking-tighter">{robot.name || "Unnamed Robot Unit"}</h2>
+            <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e]">{robot.name || "Unnamed Robot Unit"}</h2>
             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm ${
               robot.status === 'Active' ? 'bg-[#22a042] text-white' : 'bg-yellow-400 text-yellow-900'
             }`}>
@@ -119,9 +119,9 @@ export default async function RobotDetailsPage({ params }: PageProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Stats & Info */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm space-y-6">
-            <h3 className="font-bold text-[#1e1e1e] flex items-center gap-2 uppercase text-xs tracking-widest border-b border-gray-50 pb-4">
-              <Bot className="w-4 h-4 text-[#0E6633]" /> System Information
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-6">
+            <h3 className="text-lg font-bold text-[#1e1e1e] flex items-center gap-2 border-b border-gray-50 pb-4">
+              <Bot className="w-5 h-5 text-[#0E6633]" /> System Information
             </h3>
             
             <div className="space-y-4">
@@ -176,7 +176,7 @@ export default async function RobotDetailsPage({ params }: PageProps) {
         <div className="lg:col-span-2 space-y-8">
           {/* Assigned Pots Section */}
           <div className="space-y-4">
-            <h3 className="font-bold text-[#1e1e1e] flex items-center gap-2">
+            <h3 className="text-lg font-bold text-[#1e1e1e] flex items-center gap-2">
               <MapPin className="w-5 h-5 text-[#0E6633]" /> Assigned Tracks & Pots
             </h3>
             
@@ -227,9 +227,9 @@ export default async function RobotDetailsPage({ params }: PageProps) {
           </div>
 
           {/* Recent Watering Activity Section */}
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-8 py-6 border-b border-gray-50 flex items-center justify-between">
-              <h3 className="font-bold text-[#1e1e1e] flex items-center gap-2">
+              <h3 className="text-lg font-bold text-[#1e1e1e] flex items-center gap-2">
                 <History className="w-5 h-5 text-[#0E6633]" /> Recent Watering Activity
               </h3>
               <Link href="/analytics" className="text-[10px] font-bold text-[#0E6633] hover:underline uppercase tracking-widest">

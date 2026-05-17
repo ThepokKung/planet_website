@@ -34,7 +34,7 @@ export default async function PlantMasterPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {templates.length === 0 ? (
-          <div className="col-span-full bg-white border border-dashed border-gray-300 rounded-3xl p-12 text-center">
+          <div className="col-span-full bg-white border border-dashed border-gray-300 rounded-2xl p-12 text-center">
             <Leaf className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-bold text-gray-400">No plant templates found</h3>
             <p className="text-sm text-gray-400 mt-1">Create your first template to start configuring robots.</p>
@@ -51,7 +51,7 @@ export default async function PlantMasterPage() {
                 </div>
               </div>
 
-              <h3 className="text-xl font-bold text-[#1e1e1e] mb-4">{template.name}</h3>
+              <h3 className="text-lg font-bold text-[#1e1e1e] mb-4">{template.name}</h3>
 
               <div className="grid grid-cols-1 gap-3">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">

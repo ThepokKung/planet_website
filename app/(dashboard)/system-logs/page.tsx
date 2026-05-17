@@ -67,7 +67,7 @@ export default async function SystemLogsPage({ searchParams }: Props) {
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-extrabold tracking-tight text-[#1e1e1e] flex items-center gap-3">
+          <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e] flex items-center gap-3">
             <History className="w-8 h-8 text-[#0E6633]" />
             System Audit Trail
           </h2>
@@ -81,10 +81,10 @@ export default async function SystemLogsPage({ searchParams }: Props) {
         </div>
       </div>
 
-      <div className="bg-white rounded-[32px] border border-gray-100 shadow-xl overflow-hidden">
-        <div className="px-8 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-           <h3 className="font-bold text-[#1e1e1e] flex items-center gap-2 uppercase text-[10px] tracking-widest">
-            <Filter className="w-4 h-4 text-[#0E6633]" /> Active Filters
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+           <h3 className="text-lg font-bold text-[#1e1e1e] flex items-center gap-2">
+            <Filter className="w-5 h-5 text-[#0E6633]" /> Active Filters
           </h3>
         </div>
         <div className="p-4 bg-white">

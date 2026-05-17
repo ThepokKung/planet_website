@@ -81,10 +81,10 @@ export default async function Dashboard({
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-black tracking-tight text-[#1e1e1e] flex items-center gap-3">
+          <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e] flex items-center gap-3">
             Dashboard Overview
           </h2>
           <ZoneBadgeList zones={zones} role={role} currentZoneId={zone} />
@@ -107,7 +107,7 @@ export default async function Dashboard({
                 <stat.icon className={cn("w-5 h-5", stat.color)} />
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-[#1e1e1e]">
+            <div className="text-3xl font-bold text-[#1e1e1e]">
               {stat.value}
             </div>
             <div className={cn("text-xs mt-2 font-medium flex items-center gap-1", stat.color)}>
@@ -120,7 +120,7 @@ export default async function Dashboard({
       {/* Robot Table */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-          <h3 className="font-bold text-[#1e1e1e] flex items-center gap-2">
+          <h3 className="text-lg font-bold text-[#1e1e1e] flex items-center gap-2">
             <Bot className="w-5 h-5 text-[#0E6633]" /> Fleet Status
           </h3>
           <span className="text-xs font-mono text-[#757575] bg-white px-2 py-1 rounded border border-gray-200">

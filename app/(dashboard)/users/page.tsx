@@ -48,7 +48,7 @@ export default async function UserManagementPage() {
   });
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div>
         <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e]">Access Management</h2>
         <p className="text-[#757575] mt-1">Control system hierarchy and zone assignments</p>
@@ -62,10 +62,10 @@ export default async function UserManagementPage() {
 
         {/* User List */}
         <div className="lg:col-span-8">
-          <div className="bg-white rounded-[32px] border border-gray-100 shadow-xl overflow-visible">
-            <div className="px-8 py-6 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between rounded-t-[32px]">
-              <h3 className="font-bold text-[#1e1e1e] flex items-center gap-2 uppercase text-[10px] tracking-widest">
-                <Users className="w-4 h-4 text-[#0E6633]" /> Active Personnel
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-visible">
+            <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between rounded-t-2xl">
+              <h3 className="text-lg font-bold text-[#1e1e1e] flex items-center gap-2">
+                <Users className="w-5 h-5 text-[#0E6633]" /> Active Personnel
               </h3>
               <span className="text-[10px] font-mono text-[#757575] bg-white px-3 py-1 rounded-full border border-gray-100">
                 {users.length} Registered
@@ -75,17 +75,17 @@ export default async function UserManagementPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="text-[#757575] text-[10px] uppercase font-bold tracking-widest border-b border-gray-100">
-                    <th className="px-8 py-5">Identities</th>
-                    <th className="px-8 py-5">Role & Clearance</th>
-                    <th className="px-8 py-5">Assigned Zones</th>
-                    <th className="px-8 py-5 text-right">Ops</th>
+                  <tr className="text-[#757575] text-xs uppercase font-bold tracking-wider border-b border-gray-100">
+                    <th className="px-6 py-4">Identities</th>
+                    <th className="px-6 py-4">Role & Clearance</th>
+                    <th className="px-6 py-4">Assigned Zones</th>
+                    <th className="px-6 py-4 text-right">Ops</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {users.map((u) => (
                     <tr key={u.id} className="hover:bg-gray-50/50 transition-colors group">
-                      <td className="px-8 py-6">
+                      <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
                           <div className={cn(
                             "w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-bold shadow-inner",
@@ -102,7 +102,7 @@ export default async function UserManagementPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-8 py-6">
+                      <td className="px-6 py-4">
                         <span className={cn(
                           "px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider",
                           u.role === 'SUPER ADMIN' ? "bg-black text-white" : "bg-green-100 text-[#0E6633]"
@@ -110,7 +110,7 @@ export default async function UserManagementPage() {
                           {u.role}
                         </span>
                       </td>
-                      <td className="px-8 py-6">
+                      <td className="px-6 py-4">
                         {u.role === 'SUPER ADMIN' ? (
                           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">All Zones Permitted</span>
                         ) : (
@@ -122,7 +122,7 @@ export default async function UserManagementPage() {
                           />
                         )}
                       </td>
-                      <td className="px-8 py-6 text-right">
+                      <td className="px-6 py-4 text-right">
                         {u.id !== session.userId && (
                           <form action={async () => {
                             "use server";

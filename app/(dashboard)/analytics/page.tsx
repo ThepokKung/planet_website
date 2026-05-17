@@ -128,8 +128,8 @@ export default async function AnalyticsPage({ searchParams }: Props) {
       <div className="flex flex-col md:flex-row gap-6">
         <div className="md:w-72 flex-shrink-0">
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm sticky top-24">
-            <h3 className="font-bold text-[#1e1e1e] flex items-center gap-2 mb-6 text-sm uppercase tracking-wider">
-              <Filter className="w-4 h-4 text-[#0E6633]" /> Analytics Filters
+            <h3 className="text-lg font-bold text-[#1e1e1e] flex items-center gap-2 mb-6">
+              <Filter className="w-5 h-5 text-[#0E6633]" /> Analytics Filters
             </h3>
             <div className="space-y-6">
               <AnalyticsFilters zones={zones} robots={allAccessibleRobots} />
@@ -147,10 +147,8 @@ export default async function AnalyticsPage({ searchParams }: Props) {
         </div>
 
         <div className="flex-1 space-y-8">
-          <div className="bg-white/50 backdrop-blur-md rounded-3xl p-1 border border-white shadow-xl">
-            <div className="bg-[#fcfdfc] rounded-[22px] p-8">
-              <AnalyticsCharts data={analyticsData} />
-            </div>
+          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <AnalyticsCharts data={analyticsData} />
           </div>
         </div>
       </div>
