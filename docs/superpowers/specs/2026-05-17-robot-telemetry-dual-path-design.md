@@ -1,0 +1,63 @@
+# Robot Telemetry Dual-Path Design
+
+## Context
+The robot detail page must show live telemetry when open, while telemetry ingestion must continue into the database even when no page is open. The existing system uses Node-RED for MQTT and a Next.js App Router frontend with Prisma.
+
+## Goals
+- Show latest robot status and state on the robot detail page.
+- Continue ingesting telemetry into the database even when the page is not open.
+- Keep MQTT topic names unchanged.
+- Use `NODE_RED_BASE_URL` for Node-RED WebSocket endpoint.
+
+## Non-Goals
+- No manual robot control added to the UI.
+- No schema changes to Prisma.
+- No changes to MQTT topic naming.
+
+## Architecture
+The solution is dual-path:
+1. **Database path (always on):** Node-RED posts telemetry to `/api/node-red/bridge` on every message, updating the database.
+2. **Live path (page open):** The browser connects via WebSocket to Node-RED and subscribes to a robot ID. Node-RED forwards matching telemetry to the WebSocket clients.
+
+## Components
+- **Node-RED Flow**
+  - WebSocket in: `/ws/telemetry` (subscribe messages from browser).
+  - Function: subscribe handler (parse JSON, set `flow.activeRobotId`).
+  - MQTT in: `vf/robots/+/telemetry` (unchanged).
+  - Function: telemetry filter (match `robot_id` against `flow.activeRobotId`).
+  - WebSocket out: `/ws/telemetry` (forward telemetry to browser).
+  - HTTP request: POST `/api/node-red/bridge` (always on DB ingestion).
+
+- **Next.js Robot Detail Page**
+  - Server component loads robot snapshot from DB (already in place).
+  - Client component opens WebSocket and overlays live telemetry.
+
+## Data Flow
+- **Subscribe:**
+  - Browser sends JSON over WebSocket: `{ "action": "subscribe", "target": "<robot_id>" }`.
+  - Node-RED parses payload and stores `flow.activeRobotId`.
+
+- **Telemetry ingestion:**
+  - MQTT telemetry arrives at Node-RED.
+  - Node-RED posts to `/api/node-red/bridge` for database update.
+  - Node-RED forwards telemetry to WebSocket if `robot_id` matches `flow.activeRobotId`.
+
+## Error Handling
+- If WebSocket is disconnected, the UI shows the DB snapshot and the connection state indicates disconnected.
+- If Node-RED is down, DB ingestion stops, but last DB values remain visible.
+- If parsing fails, the subscribe handler ignores the message and does not update the active robot.
+
+## Security
+- `/api/node-red/bridge` requires `x-api-key`.
+- No new secrets introduced.
+
+## Testing Plan
+- **DB only:** Close the robot detail page, publish telemetry to MQTT, verify robot row updated in DB.
+- **Live overlay:** Open robot detail page and confirm WebSocket status shows connected and live fields update.
+- **Filter:** Send telemetry for a different robot and confirm it does not update the current page.
+
+## Acceptance Criteria
+- Robot detail page shows latest DB snapshot on load and updates live when WebSocket data arrives.
+- Telemetry continues to update the database when the page is closed.
+- MQTT topic naming remains unchanged.
+- `NODE_RED_BASE_URL` controls the WebSocket endpoint.
