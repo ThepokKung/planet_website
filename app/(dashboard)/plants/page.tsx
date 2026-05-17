@@ -60,7 +60,18 @@ export default async function PlantsPage({
         take: 1
       }
     },
-    orderBy: { plantName: 'asc' }
+    orderBy: [
+      {
+        pot: {
+          robot: {
+            location: {
+              fullCode: 'asc'
+            }
+          }
+        }
+      },
+      { plantName: 'asc' }
+    ]
   });
 
   return (
