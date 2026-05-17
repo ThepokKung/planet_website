@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { updatePasswordAction } from "@/actions/users";
+import { PageHeader } from "@/components/page-header";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -67,11 +68,11 @@ export default function SettingsPage() {
   if (isLoading) return <div className="h-full flex items-center justify-center"><Loader2 className="animate-spin text-[#0E6633]" /></div>;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
-      <div>
-        <h2 className="text-3xl font-bold text-[#1e1e1e]">Account Security</h2>
-        <p className="text-[#757575] mt-1">Update your password to keep your account secure</p>
-      </div>
+    <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
+      <PageHeader 
+        title="Account Security"
+        description="Update your password to keep your account secure"
+      />
 
       {status && (
         <div className={`px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2 border animate-in slide-in-from-top-2 ${

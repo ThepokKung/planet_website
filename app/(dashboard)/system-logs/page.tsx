@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { getAccessibleData } from "@/lib/data-access";
 import { DashboardFilters } from "@/components/dashboard-filters";
+import { PageHeader } from "@/components/page-header";
 
 export const dynamic = 'force-dynamic';
 
@@ -65,21 +66,15 @@ export default async function SystemLogsPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e] flex items-center gap-3">
-            <History className="w-8 h-8 text-[#0E6633]" />
-            System Audit Trail
-          </h2>
-          <p className="text-[#757575] mt-1 font-medium">Deep-dive into chronological hardware states and error reporting</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <DateRangePicker />
-          <button className="flex items-center gap-2 px-6 py-2.5 bg-[#0E6633] text-white rounded-xl text-sm font-bold hover:bg-[#0c592b] transition-all shadow-lg shadow-[#0E6633]/20">
-            <Download className="w-4 h-4" /> Export Audit Log
-          </button>
-        </div>
-      </div>
+      <PageHeader 
+        title="System Audit Trail"
+        description="Deep-dive into chronological hardware states and error reporting"
+      >
+        <DateRangePicker />
+        <button className="flex items-center gap-2 px-6 py-2.5 bg-[#0E6633] text-white rounded-xl text-sm font-bold hover:bg-[#0c592b] transition-all shadow-lg shadow-[#0E6633]/20">
+          <Download className="w-4 h-4" /> Export Audit Log
+        </button>
+      </PageHeader>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">

@@ -14,6 +14,7 @@ import { twMerge } from "tailwind-merge";
 import { getAccessibleData } from "@/lib/data-access";
 import { DashboardFilters } from "@/components/dashboard-filters";
 import { ZoneBadgeList } from "@/components/zone-badge-list";
+import { PageHeader } from "@/components/page-header";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -82,14 +83,10 @@ export default async function Dashboard({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e] flex items-center gap-3">
-            Dashboard Overview
-          </h2>
-          <ZoneBadgeList zones={zones} role={role} currentZoneId={zone} />
-        </div>
-      </div>
+      <PageHeader 
+        title="Dashboard Overview"
+        description={<ZoneBadgeList zones={zones} role={role} currentZoneId={zone} />}
+      />
 
       <DashboardFilters 
         zones={zones} 

@@ -18,6 +18,7 @@ import { RobotHistoryLogs } from "@/components/robot-history-logs";
 import { RobotCommandButton } from "@/components/robot-command-button";
 import { RobotStartTaskButton } from "@/components/robot-start-task-button";
 import { RobotTelemetryStream } from "@/components/robot-telemetry-stream";
+import { PageHeader } from "@/components/page-header";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -81,40 +82,35 @@ export default async function RobotDetailsPage({ params }: PageProps) {
         <span className="text-[#0E6633]">Robot Details</span>
       </div>
 
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e]">{robot.name || "Unnamed Robot Unit"}</h2>
-            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm ${
-              robot.status === 'Active' ? 'bg-[#22a042] text-white' : 'bg-yellow-400 text-yellow-900'
-            }`}>
-              {robot.status || 'Idle'}
-            </span>
-          </div>
-          <p className="text-lg text-[#757575] font-mono font-bold uppercase tracking-tighter">{robot.id}</p>
-        </div>
-        
-        <div className="flex gap-4">
-          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Battery</p>
-              <div className="flex items-center gap-2">
-                <Battery className={`w-5 h-5 ${robot.batteryLevel && robot.batteryLevel > 20 ? 'text-[#22a042]' : 'text-red-500'}`} />
-                <span className="text-xl font-black text-[#1e1e1e]">{robot.batteryLevel || 0}%</span>
-              </div>
+      <PageHeader
+        title={robot.name || "Unnamed Robot Unit"}
+        description={`Unit ID: ${robot.id}`}
+        titleBadge={
+          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm ${
+            robot.status === 'Active' ? 'bg-[#22a042] text-white' : 'bg-yellow-400 text-yellow-900'
+          }`}>
+            {robot.status || 'Idle'}
+          </span>
+        }
+      >
+        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
+          <div className="space-y-1">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Battery</p>
+            <div className="flex items-center gap-2">
+              <Battery className={`w-5 h-5 ${robot.batteryLevel && robot.batteryLevel > 20 ? 'text-[#22a042]' : 'text-red-500'}`} />
+              <span className="text-xl font-black text-[#1e1e1e]">{robot.batteryLevel || 0}%</span>
             </div>
-            <div className="w-px h-8 bg-gray-100" />
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Connection</p>
-              <div className="flex items-center gap-2">
-                <Wifi className="w-5 h-5 text-blue-500" />
-                <span className="text-sm font-bold text-[#1e1e1e]">Stable</span>
-              </div>
+          </div>
+          <div className="w-px h-8 bg-gray-100" />
+          <div className="space-y-1">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Connection</p>
+            <div className="flex items-center gap-2">
+              <Wifi className="w-5 h-5 text-blue-500" />
+              <span className="text-sm font-bold text-[#1e1e1e]">Stable</span>
             </div>
           </div>
         </div>
-      </div>
+      </PageHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Stats & Info */}

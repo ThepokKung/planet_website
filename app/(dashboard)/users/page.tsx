@@ -8,6 +8,7 @@ import { UserZoneBadge } from "@/components/user-zone-badge";
 import { UserZoneManager } from "@/components/user-zone-manager";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { PageHeader } from "@/components/page-header";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -49,10 +50,10 @@ export default async function UserManagementPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e]">Access Management</h2>
-        <p className="text-[#757575] mt-1">Control system hierarchy and zone assignments</p>
-      </div>
+      <PageHeader 
+        title="Access Management"
+        description="Control system hierarchy and zone assignments"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Create User Form */}

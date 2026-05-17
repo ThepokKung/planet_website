@@ -14,6 +14,7 @@ import Link from "next/link";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { DashboardFilters } from "@/components/dashboard-filters";
+import { PageHeader } from "@/components/page-header";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -64,12 +65,11 @@ export default async function PlantsPage({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e]">Plant Inventory</h2>
-          <p className="text-[#757575] mt-1">Comprehensive list of all plants across your active robot fleet</p>
-        </div>
-        <div className="relative group">
+      <PageHeader 
+        title="Plant Inventory"
+        description="Comprehensive list of all plants across your active robot fleet"
+      >
+        <div className="relative group w-full md:w-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#0E6633] transition-colors" />
           <input 
             type="text" 
@@ -77,7 +77,7 @@ export default async function PlantsPage({
             className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6633]/20 focus:border-[#0E6633] w-full md:w-64 transition-all"
           />
         </div>
-      </div>
+      </PageHeader>
 
       <DashboardFilters 
         zones={zones} 

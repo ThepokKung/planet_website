@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { Leaf, Thermometer } from "lucide-react";
 import { PlantTemplateForm } from "@/components/plant-template-form";
+import { PageHeader } from "@/components/page-header";
 
 export const dynamic = 'force-dynamic';
 
@@ -24,13 +25,12 @@ export default async function PlantMasterPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e]">Plant Master</h2>
-          <p className="text-[#757575] mt-1">Manage global plant templates for robot configuration</p>
-        </div>
+      <PageHeader 
+        title="Plant Master"
+        description="Manage global plant templates for robot configuration"
+      >
         <PlantTemplateForm />
-      </div>
+      </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {templates.length === 0 ? (

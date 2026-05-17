@@ -22,6 +22,7 @@ import { saveRobotConfigAction } from "@/actions/robots";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Location, PlantTemplate } from "@prisma/client";
+import { PageHeader } from "@/components/page-header";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -246,24 +247,21 @@ export default function SetupClientPage({ zones, plantTemplates }: Props) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-[#1e1e1e]">Hardware Commissioning</h2>
-          <p className="text-[#757575] mt-1 font-medium text-sm">Link robot to zone and sync configuration via USB</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {isConnected ? (
-            <button onClick={disconnectUsb} className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100 transition-all border border-red-100">
-              <X className="w-4 h-4" /> Disconnect USB
-            </button>
-          ) : (
-            <button onClick={connectUsb} disabled={isConnecting} className="flex items-center gap-2 px-6 py-2.5 bg-[#1e1e1e] text-white rounded-xl text-xs font-bold hover:bg-black transition-all shadow-lg">
-              {isConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Usb className="w-4 h-4 text-[#22a042]" />} Connect Robot (USB)
-            </button>
-          )}
-        </div>
-      </div>
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
+      <PageHeader 
+        title="Hardware Commissioning"
+        description="Link robot to zone and sync configuration via USB"
+      >
+        {isConnected ? (
+          <button onClick={disconnectUsb} className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100 transition-all border border-red-100">
+            <X className="w-4 h-4" /> Disconnect USB
+          </button>
+        ) : (
+          <button onClick={connectUsb} disabled={isConnecting} className="flex items-center gap-2 px-6 py-2.5 bg-[#1e1e1e] text-white rounded-xl text-xs font-bold hover:bg-black transition-all shadow-lg">
+            {isConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Usb className="w-4 h-4 text-[#22a042]" />} Connect Robot (USB)
+          </button>
+        )}
+      </PageHeader>
 
       {status && (
         <div className={cn(

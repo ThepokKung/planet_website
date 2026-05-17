@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { getAccessibleData } from "@/lib/data-access";
 import { AnalyticsFilters } from "@/components/analytics-filters";
+import { PageHeader } from "@/components/page-header";
 
 export const dynamic = 'force-dynamic';
 
@@ -114,16 +115,13 @@ export default async function AnalyticsPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-[#1e1e1e]">Dashboard Analytics</h2>
-          <p className="text-[#757575] mt-1">Real-time hydration intelligence and resource metrics</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <TimeRangeDropdown />
-          <DateRangePicker />
-        </div>
-      </div>
+      <PageHeader 
+        title="Dashboard Analytics"
+        description="Real-time hydration intelligence and resource metrics"
+      >
+        <TimeRangeDropdown />
+        <DateRangePicker />
+      </PageHeader>
 
       <div className="flex flex-col md:flex-row gap-6">
         <div className="md:w-72 flex-shrink-0">

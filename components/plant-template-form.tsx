@@ -115,8 +115,12 @@ export function PlantTemplateForm({ template, isEdit }: PlantTemplateFormProps) 
                   type="number"
                   min="0"
                   max="100"
-                  value={formData.targetMoisturePct}
-                  onChange={(e) => setFormData({ ...formData, targetMoisturePct: parseInt(e.target.value) })}
+                  value={Number.isNaN(formData.targetMoisturePct) ? "" : formData.targetMoisturePct}
+                  onChange={(e) => {
+                    let val = parseInt(e.target.value, 10);
+                    if (!Number.isNaN(val) && val > 100) val = 100;
+                    setFormData({ ...formData, targetMoisturePct: val });
+                  }}
                   className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 font-bold text-[#1e1e1e] focus:ring-2 focus:ring-[#0E6633] focus:border-transparent transition-all"
                 />
               </div>
