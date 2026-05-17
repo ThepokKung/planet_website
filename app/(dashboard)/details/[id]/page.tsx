@@ -153,11 +153,13 @@ export default async function RobotDetailsPage({ params }: PageProps) {
 
           <RobotStartTaskButton robotId={robot.id} />
           <RobotCommandButton robotId={robot.id} pots={robot.pots} />
+          {/* 
           <RobotTelemetryStream
             robotId={robot.id}
             nodeRedBaseUrl={nodeRedBaseUrl}
             initialTelemetry={initialTelemetry}
-          />
+          /> 
+          */}
 
           {/* Robot Logs Section (Client Side Pagination) */}
           <RobotHistoryLogs 
