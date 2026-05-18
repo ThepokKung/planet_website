@@ -11,7 +11,8 @@ export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
     adapter,
-    log: ["query"],
+    // Disable heavy query logging
+    log: [], 
   });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useFormStatus } from "react-dom";
 import { loginAction } from "@/actions/auth";
-import { Leaf, Lock, User, Loader2, LayoutDashboard } from "lucide-react";
-import Link from "next/link";
+import { Lock, User, Loader2 } from "lucide-react";
+import TreeIcon from "@/components/tree-icon";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -35,8 +34,8 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-2xl">
         <div className="text-center">
           <div className="flex justify-center">
-            <div className="bg-[#0E6633] p-3 rounded-full shadow-lg">
-              <Leaf className="h-10 w-10 text-white" />
+            <div className="w-14 h-14 rounded-xl bg-white border border-gray-200 flex items-center justify-center shadow-sm text-[#1e1e1e]">
+              <TreeIcon size={34} />
             </div>
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
@@ -135,14 +134,6 @@ export default function LoginPage() {
             >
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign in"}
             </button>
-
-            <Link
-              href="/dashboard"
-              className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-200 rounded-md text-sm font-bold text-gray-600 bg-white hover:bg-gray-50 transition-all active:scale-[0.98]"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              Return to Dashboard
-            </Link>
           </div>
         </form>
 

@@ -7,7 +7,6 @@ import {
   Leaf, 
   ChevronDown, 
   ChevronRight, 
-  Info, 
   Battery, 
   Search, 
   X,
@@ -22,8 +21,9 @@ import { updatePlantNameAction } from "@/actions/robots";
 interface Plant {
   id: string;
   plantName: string | null;
-  status: string | null;
-  moisture: number | null;
+  status?: string | null;
+  moisture?: number | null;
+  targetMoisturePct?: number | null;
 }
 
 interface Pot {
@@ -38,6 +38,7 @@ interface Robot {
   name: string | null;
   status: string | null;
   batteryLevel: number | null;
+  lastActive: Date | null;
   pots: Pot[];
 }
 
@@ -102,9 +103,15 @@ export function RobotDetailsList({ robots, role }: { robots: Robot[], role?: str
                 <div className="flex items-center gap-1.5 text-xs font-bold text-[#757575]">
                   <Battery className="w-4 h-4" /> {robot.batteryLevel}%
                 </div>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-[#0E6633] uppercase">
-                  {robot.status || 'Idle'}
-                </span>
+                {(() => {
+                  const isOffline = !robot.lastActive || (Date.now() - new Date(robot.lastActive).getTime() > 5000);
+                  const displayStatus = isOffline ? 'Offline' : (robot.status || 'Idle');
+                  return (
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${isOffline ? 'bg-red-100 text-red-700' : (robot.status === 'Active' ? 'bg-green-100 text-[#0E6633]' : 'bg-yellow-100 text-yellow-700')}`}>
+                      {displayStatus}
+                    </span>
+                  );
+                })()}
                 <Link 
                   href={`/details/${robot.id}`}
                   className="p-2 hover:bg-[#0E6633] hover:text-white rounded-lg transition-all text-[#0E6633] border border-[#0E6633]/10"
@@ -155,7 +162,12 @@ export function RobotDetailsList({ robots, role }: { robots: Robot[], role?: str
                             )}
                           </div>
                           <div className="flex items-center gap-4">
-                            <span className="text-xs font-mono text-[#757575]">{plant.moisture || 0}% moisture</span>
+                            <div className="flex flex-col items-end">
+                              <span className="text-xs font-mono text-[#757575]">{plant.moisture || 0}% moisture</span>
+                              {plant.targetMoisturePct && (
+                                <span className="text-[9px] font-bold text-[#0E6633] uppercase">Goal: {plant.targetMoisturePct}%</span>
+                              )}
+                            </div>
                             <button className="text-[10px] font-bold text-[#0E6633] hover:underline uppercase">Stats</button>
                           </div>
                         </div>

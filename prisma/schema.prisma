@@ -10,11 +10,22 @@ model User {
   id           String     @id @default(uuid()) @map("user_id")
   username     String     @unique
   passwordHash String     @map("password_hash")
-  role         String?
+  role         String?    @default("ADMIN") // SUPER ADMIN, ADMIN
   createdAt    DateTime?  @default(now()) @map("created_at")
   locations    Location[]
+  robotLogs    RobotLog[]
 
   @@map("users")
+}
+
+model PlantTemplate {
+  id                String   @id @default(uuid()) @map("template_id")
+  name              String   @unique
+  targetMoisturePct Int      @map("target_moisture_pct")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("plant_templates")
 }
 
 model Location {
@@ -40,6 +51,7 @@ model Robot {
   currentTrackIndex Int?           @map("current_track_index")
   batteryLevel      Int?           @map("battery_level")
   lastActive        DateTime?      @map("last_active")
+  debugCommand      String?        @map("debug_command")
   location          Location?      @relation(fields: [locationId], references: [id])
   pots              Pot[]
   wateringLogs      WateringLog[]
@@ -94,10 +106,12 @@ model WateringLog {
 model RobotLog {
   id        String    @id @default(uuid()) @map("log_id")
   robotId   String?   @map("robot_id")
+  userId    String?   @map("user_id")
   state     String?
   message   String?
   createdAt DateTime? @default(now()) @map("created_at")
   robot     Robot?    @relation(fields: [robotId], references: [id])
+  user      User?     @relation(fields: [userId], references: [id])
 
   @@map("robot_logs")
 }

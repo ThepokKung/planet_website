@@ -46,6 +46,7 @@ export async function loginAction(formData: FormData) {
     const expires = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours
     const session = await encrypt({ 
       userId: user.id, 
+      username: user.username,
       role: user.role || 'USER',
       expires 
     });
@@ -54,7 +55,7 @@ export async function loginAction(formData: FormData) {
     (await cookies()).set("session", session, { 
       expires, 
       httpOnly: true,
-      secure: false, // Set to false to allow login over local network HTTP
+      secure: process.env.NODE_ENV === "production",
       sameSite: 'lax',
       path: '/'
     });

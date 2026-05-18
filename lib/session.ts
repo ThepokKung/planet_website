@@ -1,11 +1,18 @@
-import { SignJWT, jwtVerify } from "jose";
+import { SignJWT, jwtVerify, JWTPayload } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-const secretKey = "vertical-forest-secret-2026";
+const secretKey = process.env.JWT_SECRET || "vertical-forest-secret-2026";
 const key = new TextEncoder().encode(secretKey);
 
-export async function encrypt(payload: any) {
+export interface SessionPayload extends JWTPayload {
+  userId: string;
+  username: string;
+  role: string;
+  expires?: Date;
+}
+
+export async function encrypt(payload: SessionPayload) {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -13,14 +20,14 @@ export async function encrypt(payload: any) {
     .sign(key);
 }
 
-export async function decrypt(input: string): Promise<any> {
+export async function decrypt(input: string): Promise<SessionPayload> {
   const { payload } = await jwtVerify(input, key, {
     algorithms: ["HS256"],
   });
-  return payload;
+  return payload as SessionPayload;
 }
 
-export async function getSession() {
+export async function getSession(): Promise<SessionPayload | null> {
   const session = (await cookies()).get("session")?.value;
   if (!session) return null;
   return await decrypt(session);
@@ -38,7 +45,7 @@ export async function updateSession(request: NextRequest) {
     name: "session",
     value: await encrypt(parsed),
     httpOnly: true,
-    expires: parsed.expires,
+    expires: parsed.expires as Date,
   });
   return res;
 }

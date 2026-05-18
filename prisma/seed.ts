@@ -26,34 +26,71 @@ async function main() {
   await prisma.robot.deleteMany();
   await prisma.location.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.plantTemplate.deleteMany();
 
   console.log('--- 🏗️  Vertical Forest Seed: Creating Base Infrastructure ---');
 
+  // 1.5 Setup Plant Templates
+  const templates = [
+    { name: 'Catnip', targetMoisturePct: 50 },
+    { name: 'Devil’s ivy', targetMoisturePct: 60 },
+    { name: 'Snake plant', targetMoisturePct: 30 },
+  ];
+
+  const createdTemplates = [];
+  for (const t of templates) {
+    createdTemplates.push(await prisma.plantTemplate.create({ data: t }));
+  }
+
   // 2. Setup Base Data
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+  const hashedAdminPassword = await bcrypt.hash('admin123', 10);
+  const hashedSuperAdminPassword = await bcrypt.hash('superadmin123', 10);
+
+  await prisma.user.create({
+    data: {
+      username: 'superadmin',
+      passwordHash: hashedSuperAdminPassword,
+      role: 'SUPER ADMIN',
+    },
+  });
+
   const admin = await prisma.user.create({
     data: {
       username: 'admin',
-      passwordHash: hashedPassword,
+      passwordHash: hashedAdminPassword,
       role: 'ADMIN',
     },
   });
 
-  const location = await prisma.location.create({
-    data: {
-      buildingCode: 'N9',
-      floorLevel: '1',
-      spotName: 'Lab-1',
-      fullCode: 'N9-1-1',
-      userId: admin.id,
-    },
-  });
+  console.log('--- 🏗️  Vertical Forest Seed: Generating 35 Locations (S1-S15, N1-N20) ---');
+  
+  const locationsData = [
+    ...Array.from({ length: 15 }, (_, i) => ({ code: `S${i + 1}`, building: `S${i + 1}`, name: `South Zone ${i + 1}` })),
+    ...Array.from({ length: 20 }, (_, i) => ({ code: `N${i + 1}`, building: `N${i + 1}`, name: `North Zone ${i + 1}` }))
+  ];
+
+  const createdLocations = [];
+  for (const loc of locationsData) {
+    const newLoc = await prisma.location.create({
+      data: {
+        buildingCode: loc.building,
+        floorLevel: '1',
+        spotName: loc.name,
+        fullCode: loc.code,
+        userId: admin.id,
+      },
+    });
+    createdLocations.push(newLoc);
+  }
+
+  // Use the first location for our demo robot
+  const demoLocation = createdLocations.find(l => l.fullCode === 'N9') || createdLocations[0];
 
   const robot = await prisma.robot.create({
     data: {
-      id: 'BOT-001',
+      id: `B-N9-001`,
       name: 'Vertical Forest Alpha',
-      locationId: location.id,
+      locationId: demoLocation.id,
       state: 'SLEEP',
       status: 'Ready',
       batteryLevel: 98,
@@ -78,46 +115,45 @@ async function main() {
     },
   });
 
-  // Create Plants
-  const basil = await prisma.plant.create({
-    data: {
-      potId: pot0.id,
-      plantIndex: 0,
-      plantName: 'Basil (โหระพา)',
-      targetMoisturePct: 60,
-      maxWaterDurationSec: 5,
-      flowRateMlPerSec: 10.0,
-    },
-  });
+  // Create Plants dynamically from templates
+  const createdPlants = [];
 
-  const mint = await prisma.plant.create({
-    data: {
-      potId: pot0.id,
-      plantIndex: 1,
-      plantName: 'Peppermint (สะระแหน่)',
-      targetMoisturePct: 70,
-      maxWaterDurationSec: 5,
-      flowRateMlPerSec: 10.0,
-    },
-  });
+  // Assign first 2 templates to pot0 (Catnip, Devil's ivy)
+  for (let i = 0; i < 2; i++) {
+    createdPlants.push(
+      await prisma.plant.create({
+        data: {
+          potId: pot0.id,
+          plantIndex: i,
+          plantName: createdTemplates[i].name,
+          targetMoisturePct: createdTemplates[i].targetMoisturePct,
+          maxWaterDurationSec: 5,
+          flowRateMlPerSec: 10.0,
+        },
+      })
+    );
+  }
 
-  const cactus = await prisma.plant.create({
-    data: {
-      potId: pot1.id,
-      plantIndex: 0,
-      plantName: 'Cactus (กระบองเพชร)',
-      targetMoisturePct: 20,
-      maxWaterDurationSec: 3,
-      flowRateMlPerSec: 5.0,
-    },
-  });
+  // Assign 3rd template to pot1 (Snake plant)
+  createdPlants.push(
+    await prisma.plant.create({
+      data: {
+        potId: pot1.id,
+        plantIndex: 0,
+        plantName: createdTemplates[2].name,
+        targetMoisturePct: createdTemplates[2].targetMoisturePct,
+        maxWaterDurationSec: 3,
+        flowRateMlPerSec: 5.0,
+      },
+    })
+  );
 
   console.log('--- 🤖 Vertical Forest Seed: Starting 7-Day Simulation (8-Step Workflow) ---');
 
   const now = new Date();
   const pots = [
-    { record: pot0, plants: [basil, mint] },
-    { record: pot1, plants: [cactus] }
+    { record: pot0, plants: createdPlants.slice(0, 2) },
+    { record: pot1, plants: createdPlants.slice(2, 3) }
   ];
 
   // Simulation Loop: 7 Days
@@ -125,8 +161,8 @@ async function main() {
     const simulationDate = new Date(now);
     simulationDate.setDate(simulationDate.getDate() - d);
     
-    // Two runs per day: 08:00 and 17:00
-    const runHours = [8, 17];
+    // Two runs per day: 07:00 and 17:00
+    const runHours = [7, 17];
 
     for (const hour of runHours) {
       let currentTime = new Date(simulationDate);
@@ -195,7 +231,7 @@ async function main() {
           // Simulate Moisture Logic
           const target = plant.targetMoisturePct || 50;
           // Randomize moisture: morning runs usually drier than evening
-          const moistureBefore = hour === 8 
+          const moistureBefore = hour === 7 
             ? Math.floor(Math.random() * (target + 10)) 
             : Math.floor(Math.random() * (target + 20));
           
