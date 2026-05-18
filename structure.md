@@ -35,8 +35,9 @@ Handles JWT encryption/decryption using `jose`.
 ## 3. Data Flow
 
 1.  **Hardware Ingestion**: Robots POST to `/api/logs` -> Zod Validation -> Bulk `createMany` in PostgreSQL.
-2.  **OTA Config**: Robots GET `/api/config` -> `lib/data-access` fetches assignment -> Formatted JSON response.
-3.  **UI Updates**: User performs action -> Server Action -> DB Update -> `revalidatePath` triggers Next.js cache refresh.
+2.  **OTA Config (Passive Pull)**: Robots GET `/api/config` -> `lib/data-access` fetches assignment -> Formatted JSON response.
+3.  **Real-Time Push (Active via Node-RED)**: User triggers a command/config update -> Server Action updates DB -> Sends POST request to Node-RED REST API -> Node-RED publishes to MQTT -> ESP32 Hardware receives instantly.
+4.  **UI Updates**: User performs action -> Server Action -> DB Update -> `revalidatePath` triggers Next.js cache refresh.
 
 ---
 

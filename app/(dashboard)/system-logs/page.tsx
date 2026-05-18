@@ -2,8 +2,6 @@ import { prisma } from "@/lib/prisma";
 import { DateRangePicker } from "@/components/date-range-picker";
 import { SystemLogTable } from "@/components/system-log-table";
 import { 
-  Download,
-  History,
   Filter
 } from "lucide-react";
 import { getAccessibleData } from "@/lib/data-access";
@@ -71,9 +69,6 @@ export default async function SystemLogsPage({ searchParams }: Props) {
         description="Deep-dive into chronological hardware states and error reporting"
       >
         <DateRangePicker />
-        <button className="flex items-center gap-2 px-6 py-2.5 bg-[#0E6633] text-white rounded-xl text-sm font-bold hover:bg-[#0c592b] transition-all shadow-lg shadow-[#0E6633]/20">
-          <Download className="w-4 h-4" /> Export Audit Log
-        </button>
       </PageHeader>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">

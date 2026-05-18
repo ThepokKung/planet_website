@@ -9,7 +9,8 @@ This project is an Industrial IoT (IIoT) read-only monitoring dashboard for auto
 *   **OTA Configuration:** Centralized management of robot track assignments and plant moisture targets.
 *   **RBAC (Role-Based Access Control):** Granular access management for Super Admins and Zone Admins.
 *   **Audit Logging:** Comprehensive event logs for all system activities and user actions.
-*   **IoT Integration:** Secure endpoints for telemetry ingestion and OTA config fetching.
+*   **IoT Integration:** Secure endpoints for telemetry ingestion (`/api/logs`) and OTA config polling (`/api/config`).
+*   **Hardware Real-time Communication:** Direct push capabilities via **Node-RED and MQTT** for instant command execution (Operational & Debug commands).
 
 ## Tech Stack
 *   **Framework:** Next.js 16+ (App Router, Server Components, Server Actions)
@@ -47,7 +48,8 @@ This project is an Industrial IoT (IIoT) read-only monitoring dashboard for auto
 The project follows a **Server-First** approach using Next.js App Router.
 *   **Server Actions:** All database mutations (CRUD) are handled via Server Actions in `actions/`.
 *   **Data Access Layer:** `lib/data-access.ts` centralizes RBAC-filtered Prisma queries.
-*   **IoT Endpoints:** `app/api/` contains secure routes for hardware interaction (protected via API Key).
+*   **IoT Endpoints:** `app/api/` contains secure routes for hardware HTTP polling and telemetry reporting.
+*   **Node-RED Middleware:** Server Actions push real-time updates (config, debug commands) to Node-RED REST endpoints, which translates them into MQTT messages for the ESP32 hardware.
 *   **UI Components:** A mix of Server Components (for data fetching) and Client Components (for interactivity).
 
 ## Security
