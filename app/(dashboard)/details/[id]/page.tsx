@@ -75,6 +75,9 @@ export default async function RobotDetailsPage({ params }: PageProps) {
     last_active: robot.lastActive ? robot.lastActive.toISOString() : undefined,
   };
 
+  const isOffline = !robot.lastActive || (Date.now() - new Date(robot.lastActive).getTime() > 5000);
+  const displayStatus = isOffline ? 'Offline' : (robot.status || 'Idle');
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <AutoRefresh intervalMs={5000} />
@@ -90,9 +93,9 @@ export default async function RobotDetailsPage({ params }: PageProps) {
         description={`Unit ID: ${robot.id}`}
         titleBadge={
           <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm ${
-            robot.status === 'Active' ? 'bg-[#22a042] text-white' : 'bg-yellow-400 text-yellow-900'
+            isOffline ? 'bg-red-500 text-white' : (robot.status === 'Active' ? 'bg-[#22a042] text-white' : 'bg-yellow-400 text-yellow-900')
           }`}>
-            {robot.status || 'Idle'}
+            {displayStatus}
           </span>
         }
       >
@@ -108,8 +111,8 @@ export default async function RobotDetailsPage({ params }: PageProps) {
           <div className="space-y-1">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Connection</p>
             <div className="flex items-center gap-2">
-              <Wifi className="w-5 h-5 text-blue-500" />
-              <span className="text-sm font-bold text-[#1e1e1e]">Stable</span>
+              <Wifi className={`w-5 h-5 ${isOffline ? 'text-red-500' : 'text-blue-500'}`} />
+              <span className={`text-sm font-bold ${isOffline ? 'text-red-500' : 'text-[#1e1e1e]'}`}>{isOffline ? 'Offline' : 'Stable'}</span>
             </div>
           </div>
         </div>
